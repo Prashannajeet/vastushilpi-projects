@@ -9,4 +9,4 @@ if curl -fsS http://127.0.0.1:8501/_stcore/health >/dev/null 2>&1; then
   exit 0
 fi
 (sleep 2; open http://127.0.0.1:8501) &
-.venv/bin/python -m streamlit run streamlit_app.py --server.port 8501
+.venv/bin/python -m streamlit run streamlit_app.py --server.port 8501 --server.address 127.0.0.1

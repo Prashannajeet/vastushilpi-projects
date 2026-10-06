@@ -37,11 +37,13 @@ The smooth display uses Gaussian sigma 1 m and the hillshade averages four light
 
 ## Git and deployment
 
-This folder is the local Git repository for **Vastushilpi Projects**. The source, compact web assets and pinned dependencies are versioned. CAD files, large GIS outputs, virtual environments, exports and secrets are excluded by `.gitignore`.
+This folder is the local Git repository for **Vastushilpi Projects**. The source, compact web assets and pinned dependencies are versioned. CAD files, remaining GIS outputs, virtual environments, exports and secrets are excluded by `.gitignore`. The two original DEM GeoTIFFs and projection/world-file sidecars are included for hosted elevation profiles.
 
-No GitHub remote or public deployment is configured. To host later, use a private repository named `vastushilpi-projects`, select `streamlit_app.py` as its entrypoint, and use Python 3.12. DEM files must be supplied separately or intentionally included after deciding how survey data may be shared. Without DEMs, hosted maps can render and draw, and users can supply their matching DEM for profiles.
+GitHub repository: https://github.com/Prashannajeet/vastushilpi-projects (private).
 
-The `.streamlit/config.toml` binds local runs to 127.0.0.1. A managed hosting platform must override the bind address to `0.0.0.0` using its configuration/launch flags. Do not publish `.streamlit/secrets.toml`.
+Streamlit Community Cloud deployment: repository `Prashannajeet/vastushilpi-projects`, branch `main`, entrypoint `streamlit_app.py`, Python **3.12** under Advanced settings. The original DEMs are included. Deployment requires the owner to sign into Streamlit and accept its hosting terms. The final hosted URL is recorded only after a successful deployment.
+
+The hosting configuration binds to `0.0.0.0`; the Mac launcher explicitly binds local runs to `127.0.0.1`. Do not publish `.streamlit/secrets.toml`.
 
 ## Validation
 

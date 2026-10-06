@@ -7,7 +7,13 @@ __pycache__/
 .env.*
 .streamlit/secrets.toml
 Source_CAD/
-outputs/
+outputs/*
+!outputs/grid_dem_0p5m.tif
+!outputs/grid_dem_0p5m.prj
+!outputs/grid_dem_0p5m.tfw
+!outputs/geolocation_dem_0p5m.tif
+!outputs/geolocation_dem_0p5m.prj
+!outputs/geolocation_dem_0p5m.tfw
 audit_logs/
 work/
 Interactive_Maps/exports/

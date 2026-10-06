@@ -5,7 +5,7 @@ secondaryBackgroundColor = "#eef4f6"
 textColor = "#102f39"
 font = "sans serif"
 [server]
-address = "127.0.0.1"
+address = "0.0.0.0"
 headless = true
 maxUploadSize = 100
 [browser]

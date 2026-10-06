@@ -120,7 +120,7 @@ else:
     if df['elevation_m'].notna().any():
         fig = go.Figure(go.Scatter(x=df.distance_m,y=df.elevation_m,mode='lines',connectgaps=False,line={'color':'#147c86','width':2},hovertemplate='%{x:.1f} m distance<br>%{y:.2f} m elevation<extra></extra>'))
         fig.update_layout(height=300,margin={'l':20,'r':20,'t':15,'b':20},xaxis_title='Distance (m)',yaxis_title='Elevation (m)',paper_bgcolor='white',plot_bgcolor='white',font={'color':'#102f39'},xaxis={'gridcolor':'#e2eaed'},yaxis={'gridcolor':'#e2eaed'})
-        st.plotly_chart(fig,use_container_width=True)
+        st.plotly_chart(fig,width="stretch")
     else:
         st.warning('No supported DEM elevations along this route. Draw inside the marked survey coverage.')
     st.caption('Original TIN DEM · bilinear sampling · gaps indicate NoData · vertical datum unconfirmed')
