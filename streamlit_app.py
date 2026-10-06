@@ -29,8 +29,6 @@ h3{font-size:1.1rem!important;padding:.2rem 0!important}
 @media(min-width:900px){
 [data-testid="stMain"]{overflow:hidden}
 .st-key-map_panel iframe{height:calc(100dvh - 280px)!important;min-height:260px}
-.st-key-profile_panel [data-testid="stPlotlyChart"]{height:calc(100dvh - 430px)!important;min-height:180px}
-.st-key-profile_panel [data-testid="stPlotlyChart"]>div{height:100%!important}
 [data-testid="stSidebarContent"]{overflow:hidden}
 }
 @media(max-height:780px) and (min-width:900px){
