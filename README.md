@@ -41,7 +41,9 @@ This folder is the local Git repository for **Vastushilpi Projects**. The source
 
 GitHub repository: https://github.com/Prashannajeet/vastushilpi-projects (private).
 
-Streamlit Community Cloud deployment: repository `Prashannajeet/vastushilpi-projects`, branch `main`, entrypoint `streamlit_app.py`, Python **3.12** under Advanced settings. The original DEMs are included. Deployment requires the owner to sign into Streamlit and accept its hosting terms. The final hosted URL is recorded only after a successful deployment.
+Streamlit Community Cloud deployment: repository `Prashannajeet/vastushilpi-projects`, branch `main`, entrypoint `streamlit_app.py`, Python **3.12** under Advanced settings. The original DEMs are included. Deployment requires the owner to sign into Streamlit and accept its hosting terms. Live app: https://vastushilpi-projects.streamlit.app/
+
+Successfully deployed on Streamlit Community Cloud with Python 3.12.15. App sharing remains private (sign-in/invitation required). Both native DEMs are available on the hosted server; a 678.8 m Grid test route returned 100% DEM support at 0.50 m intervals.
 
 The hosting configuration binds to `0.0.0.0`; the Mac launcher explicitly binds local runs to `127.0.0.1`. Do not publish `.streamlit/secrets.toml`.
 
