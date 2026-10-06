@@ -16,7 +16,8 @@ CONFIG = json.loads((ASSETS / 'config.json').read_text())
 st.set_page_config(page_title='Vastushilpi Projects', page_icon='🗺️', layout='wide')
 st.markdown('''<style>
 [data-testid="stAppViewContainer"]{background:#edf3f5}
-.block-container{padding:3.4rem .8rem .6rem;max-width:none}
+[data-testid="stHeader"]{display:none}
+.block-container{padding:.6rem .8rem .6rem;max-width:none}
 [data-testid="stVerticalBlock"]{gap:.5rem}
 h3{font-size:1rem!important;padding:.1rem 0!important;color:#223b42}
 [data-testid="stMetric"]{background:#f7fbfc;border:1px solid #dce6e9;border-radius:8px;padding:7px 10px}
@@ -37,8 +38,8 @@ h3{font-size:1rem!important;padding:.1rem 0!important;color:#223b42}
 .workspace-subtitle{font-size:12px;color:#64767c;margin-top:5px}
 @media(min-width:900px){
 [data-testid="stMain"]{overflow:hidden}
-.st-key-layer_panel,.st-key-profile_panel{min-height:calc(100dvh - 225px)}
-.st-key-map_panel iframe{height:calc(100dvh - 225px)!important;min-height:260px}
+.st-key-layer_panel,.st-key-profile_panel{min-height:calc(100dvh - 180px)}
+.st-key-map_panel iframe{height:calc(100dvh - 180px)!important;min-height:260px}
 }
 </style>''',unsafe_allow_html=True)
 header = st.container(key='workspace_header')
