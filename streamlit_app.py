@@ -3,6 +3,7 @@ import json
 import os
 import streamlit as st
 import folium
+from branca.element import MacroElement, Template
 from folium.plugins import Draw, Fullscreen, MeasureControl
 from streamlit_folium import st_folium
 import plotly.graph_objects as go
@@ -40,7 +41,8 @@ h3{font-size:1rem!important;padding:.1rem 0!important;color:#223b42}
 @media(min-width:1200px){
 [data-testid="stMain"]{overflow:hidden}
 .st-key-layer_panel,.st-key-profile_panel{min-height:calc(100dvh - 180px)}
-.st-key-map_panel iframe{height:calc(100dvh - 180px)!important;min-height:260px}
+.st-key-layer_panel{max-height:calc(100dvh - 180px);overflow-y:auto}
+.st-key-map_panel iframe{height:calc(100dvh - 210px)!important;min-height:260px}
 }
 /* Pastel surfaces keep dark text and geographic imagery legible. */
 .st-key-layer_panel{background:#eef7ff;border-color:#d3e4f5}
@@ -96,6 +98,11 @@ with layer_column, st.container(key='layer_panel'):
     show_contours = st.checkbox('Contours · 1 m', False)
     show_coverage = st.checkbox('Survey coverage', True)
     opacity = st.slider('Terrain opacity', 0, 100, 65) / 100
+    with st.expander('Layer comparison · Swipe'):
+        compare = st.checkbox('Enable swipe comparison')
+        compare_left = st.selectbox('Left layer', ['Smooth DEM', 'Smooth hillshade', 'Basemap'])
+        compare_right = st.selectbox('Right layer', ['Basemap', 'Smooth DEM', 'Smooth hillshade'])
+        st.caption('Drag the divider across the map. The basemap remains visible beneath transparent terrain.')
     st.divider()
     st.subheader('Drawing tools')
     st.caption('Line → elevation profile. Polygon, rectangle or marker → annotation. Finish a line by clicking its last vertex.')
@@ -120,10 +127,51 @@ if basemap == 'Satellite imagery':
     folium.TileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr='Imagery © Esri, Maxar, Earthstar Geographics and GIS User Community', name='Satellite imagery', max_native_zoom=19, max_zoom=22).add_to(m)
 else:
     folium.TileLayer('https://a.tile.opentopomap.org/{z}/{x}/{y}.png', attr='Map data © OpenStreetMap contributors, SRTM | © OpenTopoMap (CC-BY-SA)', name='Topography', max_native_zoom=17, max_zoom=22).add_to(m)
-if show_dem:
+if show_dem and not compare:
     folium.raster_layers.ImageOverlay(str(ASSETS / f'{location}_dem.png'), bounds=bounds, opacity=opacity, name='Smooth DEM').add_to(m)
-if show_hillshade:
+if show_hillshade and not compare:
     folium.raster_layers.ImageOverlay(str(ASSETS / f'{location}_hillshade.png'), bounds=bounds, opacity=1, name='Smooth hillshade').add_to(m)
+if compare:
+    for side, label in [('left', compare_left), ('right', compare_right)]:
+        pane = f'comparison_{side}'
+        folium.map.CustomPane(pane, z_index=410, pointer_events=False).add_to(m)
+        if label != 'Basemap':
+            suffix = 'dem' if label == 'Smooth DEM' else 'hillshade'
+            folium.raster_layers.ImageOverlay(str(ASSETS / f'{location}_{suffix}.png'),bounds=bounds,opacity=1,pane=pane,name=f'{side} · {label}').add_to(m)
+    swipe = MacroElement()
+    swipe._template = Template('''{% macro script(this, kwargs) %}
+    (function(){
+        const map = {{this._parent.get_name()}};
+        const left = map.getPane('comparison_left'), right = map.getPane('comparison_right');
+        const control = L.control({position:'bottomleft'});
+        control.onAdd = function(){
+            const box = L.DomUtil.create('div','swipe-control');
+            box.style.cssText='background:#fff4d9;padding:8px 12px;border-radius:8px;color:#344e59;box-shadow:0 2px 8px #0002;max-width:calc(100vw - 100px)';
+            const title = document.createElement('div');title.textContent='Swipe layer comparison';title.style.fontSize='12px';box.appendChild(title);
+            const slider = document.createElement('input');slider.type='range';slider.min=0;slider.max=100;slider.value=50;slider.setAttribute('aria-label','Layer comparison divider');slider.style.cssText='width:220px;max-width:100%;height:30px;touch-action:none';box.appendChild(slider);
+            L.DomEvent.disableClickPropagation(box);L.DomEvent.disableScrollPropagation(box);
+            const divider = L.DomUtil.create('div','swipe-divider',map.getContainer());
+            divider.style.cssText='position:absolute;top:0;bottom:0;width:3px;background:#fff4d9;z-index:450;pointer-events:none;box-shadow:0 0 5px #0007';
+            function update(){
+                const size=map.getSize(),origin=map.containerPointToLayerPoint([0,0]);
+                const cut=size.x*Number(slider.value)/100;
+                // Leaflet panes move during pan; clip in layer coordinates.
+                left.style.clipPath=`polygon(${origin.x}px ${origin.y}px,${origin.x+cut}px ${origin.y}px,${origin.x+cut}px ${origin.y+size.y}px,${origin.x}px ${origin.y+size.y}px)`;
+                right.style.clipPath=`polygon(${origin.x+cut}px ${origin.y}px,${origin.x+size.x}px ${origin.y}px,${origin.x+size.x}px ${origin.y+size.y}px,${origin.x+cut}px ${origin.y+size.y}px)`;
+                divider.style.left=cut+'px';
+            }
+            divider.style.width='12px';divider.style.background='linear-gradient(90deg,transparent 4px,#fff4d9 4px,#fff4d9 7px,transparent 7px)';divider.style.pointerEvents='auto';divider.style.touchAction='none';divider.style.cursor='ew-resize';
+            L.DomEvent.disableClickPropagation(divider);
+            divider.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();divider.setPointerCapture(e.pointerId);map.dragging.disable();});
+            divider.addEventListener('pointermove',e=>{if(divider.hasPointerCapture(e.pointerId)){const rect=map.getContainer().getBoundingClientRect();slider.value=Math.max(0,Math.min(100,(e.clientX-rect.left)/rect.width*100));update();}});
+            function finish(e){if(divider.hasPointerCapture(e.pointerId))divider.releasePointerCapture(e.pointerId);map.dragging.enable();}
+            divider.addEventListener('pointerup',finish);divider.addEventListener('pointercancel',finish);
+            slider.addEventListener('input',update);map.on('move zoom resize',update);requestAnimationFrame(update);
+            return box;
+        };control.addTo(map);
+    })();
+    {% endmacro %}''')
+    swipe.add_to(m)
 if show_coverage:
     folium.GeoJson(json.loads((ASSETS / f'{location}_coverage.geojson').read_text()), name='Survey coverage', style_function=lambda _: {'color':'#ffe7a0','weight':2,'fillOpacity':0,'dashArray':'5 4'}).add_to(m)
 if show_contours:
@@ -146,6 +194,8 @@ m.get_root().header.add_child(folium.Element('<style>html,body{height:100%;overf
 with map_column, st.container(key='map_panel'):
     result = st_folium(m, key=f'map_{location}', height=610, use_container_width=True, returned_objects=['all_drawings'])
     
+    if compare:
+        st.caption(f'← {compare_left} | {compare_right} → · Drag the comparison slider')
     st.markdown(f"<div style='display:flex;align-items:center;gap:10px;font-size:11px;color:#526b73'><span>{cfg['range'][0]:.1f} m</span><div style='height:10px;width:140px;background:linear-gradient(90deg,#1e6678,#429995,#a3c391,#e1d197,#b28b69,#f2ebe1)'></div><span>{cfg['range'][1]:.1f} m</span><span>Smoothed elevation · geographic north is up</span></div>", unsafe_allow_html=True)
 state_key = f'drawings_{location}'
 if result and result.get('all_drawings') is not None:
