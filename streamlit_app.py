@@ -30,7 +30,9 @@ h3{font-size:1rem!important;padding:.1rem 0!important;color:#223b42}
 .st-key-profile_panel [data-testid="stMetricLabel"] p{font-size:.72rem}
 .st-key-profile_panel [data-testid="stDownloadButton"] button{width:100%}
 .st-key-workspace_header{background:linear-gradient(110deg,#fff,#e7f3f5);border:1px solid #dce6e9;border-radius:9px;padding:14px 18px;box-shadow:0 8px 22px #243f4810}
-.brand{font-size:11px;font-weight:700;letter-spacing:1.5px;color:#33717e;margin-bottom:6px}
+.brand{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:700;letter-spacing:1.5px;color:#33717e;margin-bottom:6px}
+.brand-mark{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;background:linear-gradient(135deg,#245c75,#4096a3);color:white;border-radius:7px;font-size:12px;letter-spacing:0;box-shadow:0 3px 8px #245c7520}
+.developer-credit{font-size:10px;color:#476a75;line-height:1.5;margin-top:10px}
 .workspace-title{font-size:23px;font-weight:750;color:#20383e;line-height:1.25}
 .workspace-subtitle{font-size:12px;color:#64767c;margin-top:5px}
 @media(min-width:900px){
@@ -59,10 +61,11 @@ with layer_column, st.container(key='layer_panel'):
     st.caption('Use the map toolbar to edit, delete, measure or enter fullscreen.')
     st.divider()
     st.caption(f"Projected reference · EPSG:{cfg['epsg']}")
+    st.markdown("<div class='developer-credit'><strong>NITA AI &amp; GEOANALYTICS</strong><br>Developed by Nita AI &amp; Geoanalytics (OPC) Pvt Ltd</div>",unsafe_allow_html=True)
 with header:
     heading, counters = st.columns([2,3])
     with heading:
-        st.markdown(f"<div class='brand'>VASTUSHILPI PROJECTS · TERRAIN & GIS</div><div class='workspace-title'>{cfg['title']} · Survey Webmap</div><div class='workspace-subtitle'>Explore terrain, annotate the survey and draw DEM elevation profiles.</div>",unsafe_allow_html=True)
+        st.markdown(f"<div class='brand'><span class='brand-mark'>NA</span><span>NITA AI &amp; GEOANALYTICS · TERRAIN &amp; GIS</span></div><div class='workspace-title'>Vastushilpi Projects · {cfg['title']}</div><div class='workspace-subtitle'>Developed by Nita AI &amp; Geoanalytics (OPC) Pvt Ltd</div>",unsafe_allow_html=True)
     with counters:
         a,b,c,d = st.columns(4)
         a.metric('Survey points', f"{cfg['points']:,}")
