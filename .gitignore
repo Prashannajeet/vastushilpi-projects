@@ -1,0 +1,16 @@
+.DS_Store
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+.env.*
+.streamlit/secrets.toml
+Source_CAD/
+outputs/
+audit_logs/
+work/
+Interactive_Maps/exports/
+Interactive_Maps/*_preview.png
+MIGRATION_REPORT.json
+*.log

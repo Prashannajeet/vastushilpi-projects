@@ -1,0 +1,22 @@
+[
+  {
+    "location": "grid",
+    "sample_matches_original_cell": true,
+    "outside_extent_nodata": true,
+    "native_transform_roundtrip_under_0p1m": true,
+    "profile_length": 9.99999999825377,
+    "profile_valid_samples": 21,
+    "smoothing_preserves_original_mask": true,
+    "dem_source": "/Users/prashannajeet/Documents/Programming Learn/Vastushilpi/outputs/grid_dem_0p5m.tif"
+  },
+  {
+    "location": "geolocation",
+    "sample_matches_original_cell": true,
+    "outside_extent_nodata": true,
+    "native_transform_roundtrip_under_0p1m": true,
+    "profile_length": 9.99999999254942,
+    "profile_valid_samples": 21,
+    "smoothing_preserves_original_mask": true,
+    "dem_source": "/Users/prashannajeet/Documents/Programming Learn/Vastushilpi/outputs/geolocation_dem_0p5m.tif"
+  }
+]

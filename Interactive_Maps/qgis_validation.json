@@ -1,0 +1,26 @@
+[
+  {
+    "location": "grid",
+    "valid_layers": 31,
+    "epsg": "EPSG:32643",
+    "satellite_default": true,
+    "profile_surface_enabled": true,
+    "layouts": [
+      "GRID POINTS 2009 | A3 terrain map",
+      "Satellite | Professional GIS layout",
+      "Topography | Professional GIS layout"
+    ]
+  },
+  {
+    "location": "geolocation",
+    "valid_layers": 108,
+    "epsg": "EPSG:24379",
+    "satellite_default": true,
+    "profile_surface_enabled": true,
+    "layouts": [
+      "HIRAUNDI I-A | A3 terrain map",
+      "Satellite | Professional GIS layout",
+      "Topography | Professional GIS layout"
+    ]
+  }
+]
