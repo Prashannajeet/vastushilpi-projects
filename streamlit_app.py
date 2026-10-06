@@ -92,7 +92,7 @@ with layer_column, st.container(key='layer_panel'):
     cfg = CONFIG[location]
     st.divider()
     st.subheader('Layer stack')
-    basemap = st.selectbox('Basemap', ['Satellite imagery', 'Topography'])
+    basemap = st.selectbox('Basemap', ['Satellite imagery', 'Topography', 'ArcGIS terrain + topography · Labels'])
     show_dem = st.checkbox('Smooth DEM', True)
     show_hillshade = st.checkbox('Smooth hillshade', True)
     show_contours = st.checkbox('Contours · 1 m', False)
@@ -125,8 +125,17 @@ bounds = cfg['bounds']; centre = [(bounds[0][i]+bounds[1][i])/2 for i in (0,1)]
 m = folium.Map(location=centre, tiles=None, control_scale=True, prefer_canvas=False)
 if basemap == 'Satellite imagery':
     folium.TileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr='Imagery © Esri, Maxar, Earthstar Geographics and GIS User Community', name='Satellite imagery', max_native_zoom=19, max_zoom=22).add_to(m)
-else:
+elif basemap == 'Topography':
     folium.TileLayer('https://a.tile.opentopomap.org/{z}/{x}/{y}.png', attr='Map data © OpenStreetMap contributors, SRTM | © OpenTopoMap (CC-BY-SA)', name='Topography', max_native_zoom=17, max_zoom=22).add_to(m)
+else:
+    folium.TileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',attr='Topography © Esri, HERE, Garmin, FAO, USGS, NGA and GIS User Community',name='ArcGIS topography with labels',max_native_zoom=19,max_zoom=22).add_to(m)
+    folium.map.CustomPane('basemap_relief',z_index=250,pointer_events=False).add_to(m)
+    folium.TileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}',attr='World Hillshade © Esri, USGS, GEBCO and GIS User Community',name='ArcGIS shaded relief',pane='basemap_relief',opacity=.35,max_native_zoom=16,max_zoom=22,overlay=True).add_to(m)
+    relief_style = MacroElement()
+    relief_style._template = Template('''{% macro script(this, kwargs) %}
+    {{this._parent.get_name()}}.getPane('basemap_relief').style.mixBlendMode='multiply';
+    {% endmacro %}''')
+    relief_style.add_to(m)
 if show_dem and not compare:
     folium.raster_layers.ImageOverlay(str(ASSETS / f'{location}_dem.png'), bounds=bounds, opacity=opacity, name='Smooth DEM').add_to(m)
 if show_hillshade and not compare:
