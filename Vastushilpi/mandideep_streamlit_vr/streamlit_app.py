@@ -1,124 +1,108 @@
-"""Mandideep analysis dashboard.
+"""Streamlit-hosted Mandideep Web GIS.
 
-The main map is intentionally hosted as a standalone static Web GIS. This
-Streamlit app provides data inventory and analysis context without embedding
-the large WebGL/GeoJSON map inside Streamlit.
+The map is embedded as a Streamlit custom component with its GeoJSON payload
+injected into the component. This avoids file:// fetches, GitHub Pages, and
+Streamlit static-file routing while keeping Streamlit as the main app.
 """
 
 from __future__ import annotations
 
+import html
 import json
-import os
+import re
 from pathlib import Path
 from typing import Any
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 
-APP_BUILD = "mandideep-analysis-dashboard-2026-11-12"
+APP_BUILD = "mandideep-streamlit-inline-map-2026-11-12"
 PACKAGE_DIR = Path(__file__).resolve().parent
 DATA_DIR = PACKAGE_DIR / "data"
-MAIN_MAP_URL = os.getenv(
-    "MANDIDEEP_WEBGIS_URL",
-    "https://prashannajeet.github.io/vastushilpi-projects/",
+MAP_DIR = PACKAGE_DIR.parent / "mandideep_webgis"
+DATA_FILES = (
+    "mandideep_aoi_wgs84.geojson",
+    "mandideep_aoi_buffer_100m_wgs84.geojson",
+    "lines_aoi_wgs84.geojson",
+    "mandideep_overture_buildings_3d_wgs84.geojson",
+    "mandideep_tree_3d_wgs84.geojson",
+    "mandideep_tree_points_wgs84.geojson",
+    "aoi_tree_polygon_wgs84.geojson",
 )
 
 
 @st.cache_data(show_spinner=False)
-def read_geojson_summary(path: str) -> dict[str, Any]:
-    """Read a GeoJSON file and return a small inventory summary."""
-    file_path = Path(path)
-    with file_path.open("r", encoding="utf-8") as handle:
-        document = json.load(handle)
-    features = document.get("features", [])
-    return {
-        "name": file_path.name,
-        "features": len(features),
-        "geometry_types": sorted(
-            {
-                feature.get("geometry", {}).get("type", "Unknown")
-                for feature in features
-                if feature.get("geometry")
-            }
-        ),
-    }
+def load_geojson_payload() -> dict[str, Any]:
+    """Load and cache the display GeoJSON payload for the map component."""
+    payload: dict[str, Any] = {}
+    for name in DATA_FILES:
+        path = DATA_DIR / name
+        if path.exists():
+            with path.open("r", encoding="utf-8") as handle:
+                payload[name] = json.load(handle)
+    return payload
 
 
-def available_summary() -> list[dict[str, Any]]:
-    """Return summaries for the published Mandideep data layers."""
-    files = [
-        "mandideep_aoi_wgs84.geojson",
-        "mandideep_aoi_buffer_100m_wgs84.geojson",
-        "lines_aoi_wgs84.geojson",
-        "mandideep_overture_buildings_3d_wgs84.geojson",
-        "mandideep_tree_3d_wgs84.geojson",
-        "mandideep_tree_points_wgs84.geojson",
-    ]
-    return [
-        read_geojson_summary(str(DATA_DIR / name))
-        for name in files
-        if (DATA_DIR / name).exists()
-    ]
+@st.cache_data(show_spinner=False)
+def build_map_component(payload_json: str, body: str, css: str, maplibre_css: str, app_js: str) -> str:
+    """Build one self-contained HTML component from cached source inputs."""
+    safe_payload = payload_json.replace("</", "<\\/")
+    body_without_scripts = re.sub(r"<script\b[^>]*>.*?</script>", "", body, flags=re.IGNORECASE | re.DOTALL)
+    return f"""<!doctype html>
+<html><head><meta charset="utf-8"><style>{css}\n{maplibre_css}</style></head>
+<body>{body_without_scripts}
+<script>window.MANDIDEEP_INLINE_DATA={safe_payload};</script>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>{app_js}</script>
+</body></html>"""
 
 
-st.set_page_config(page_title="Mandideep Analysis Dashboard", layout="wide")
+def read_map_source() -> tuple[str, str, str, str]:
+    """Read the static map shell and its local source assets."""
+    index = (MAP_DIR / "index.html").read_text(encoding="utf-8")
+    body = index.split("<body>", 1)[1].split("</body>", 1)[0]
+    css = (MAP_DIR / "app.css").read_text(encoding="utf-8")
+    maplibre_css = (MAP_DIR / "public" / "vendor" / "maplibre-gl.css").read_text(encoding="utf-8")
+    app_js = (MAP_DIR / "app.js").read_text(encoding="utf-8")
+    return body, css, maplibre_css, app_js
+
+
+st.set_page_config(page_title="Mandideep Web GIS", layout="wide", initial_sidebar_state="collapsed")
+payload = load_geojson_payload()
+
+with st.sidebar:
+    st.title("Mandideep Web GIS")
+    st.caption("Streamlit-hosted main map")
+    st.success("Map data embedded and ready")
+    st.metric("Tree points", f"{len(payload.get('mandideep_tree_points_wgs84.geojson', {}).get('features', [])):,}")
+    st.metric("3D buildings", f"{len(payload.get('mandideep_overture_buildings_3d_wgs84.geojson', {}).get('features', [])):,}")
+    st.metric("CAD/vector features", f"{len(payload.get('lines_aoi_wgs84.geojson', {}).get('features', [])):,}")
+    st.caption("Analysis CRS: EPSG:32643 / UTM Zone 43N\nDisplay CRS: EPSG:4326")
+    st.divider()
+    st.markdown("**Vastushilpi Projects & Consultants Pvt. Ltd.**")
+    st.markdown(
+        "[E-4/86 Arera Colony, 10 No. Market, Arera Colony, Bhopal, Madhya Pradesh 462016](https://www.google.com/search?q=vastushilpi+projects+%26+consultants+pvt.+ltd.+address)"
+    )
+    st.markdown("Phone: [0755 276 3138](tel:+917552763138)")
+
 st.markdown(
     """
     <style>
-    [data-testid="stAppViewContainer"] > .main { padding-top: 1.5rem; }
-    .map-link { padding: 1rem; border: 1px solid #b8d8d0; border-radius: .5rem; background: #eefaf6; }
+    [data-testid="stAppViewContainer"] > .main { padding: 0 !important; }
+    [data-testid="stMainBlockContainer"], .block-container { max-width: none !important; padding: 0 !important; }
+    [data-testid="stHeader"] { display: none; }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-st.title("Mandideep Analysis Dashboard")
-st.caption("Data inventory and analysis context · the main map is hosted separately")
-
-st.markdown('<div class="map-link">', unsafe_allow_html=True)
-st.subheader("Main Mandideep Web GIS")
-st.write("Open the standalone MapLibre application for satellite imagery, terrain, vectors, trees and 3D buildings.")
-st.link_button("Open Main Map", MAIN_MAP_URL, type="primary")
-st.markdown("</div>", unsafe_allow_html=True)
-
-summaries = available_summary()
-by_name = {item["name"]: item for item in summaries}
-building_count = by_name.get("mandideep_overture_buildings_3d_wgs84.geojson", {}).get("features", 0)
-tree_count = by_name.get("mandideep_tree_points_wgs84.geojson", {}).get("features", 0)
-vector_count = by_name.get("lines_aoi_wgs84.geojson", {}).get("features", 0)
-aoi_features = by_name.get("mandideep_aoi_wgs84.geojson", {}).get("features", 0)
-
-st.subheader("Data status")
-metric_columns = st.columns(4)
-metric_columns[0].metric("AOI features", f"{aoi_features:,}")
-metric_columns[1].metric("Tree points", f"{tree_count:,}")
-metric_columns[2].metric("3D buildings", f"{building_count:,}")
-metric_columns[3].metric("CAD/vector features", f"{vector_count:,}")
-
-st.subheader("Layer inventory")
-if summaries:
-    rows = [
-        {
-            "Layer": item["name"],
-            "Features": item["features"],
-            "Geometry": ", ".join(item["geometry_types"]) or "Unknown",
-            "Display CRS": "WGS 84 / EPSG:4326",
-        }
-        for item in summaries
-    ]
-    st.dataframe(rows, use_container_width=True, hide_index=True)
-else:
-    st.error(f"No prepared layers were found in {DATA_DIR}.")
-
-st.info(
-    "Analysis CRS: EPSG:32643 / UTM Zone 43N. Display CRS: EPSG:4326. "
-    "The standalone map loads local GeoJSON through HTTP and should not be opened with file://."
+body, css, maplibre_css, app_js = read_map_source()
+component = build_map_component(
+    json.dumps(payload, separators=(",", ":"), ensure_ascii=False),
+    body,
+    css,
+    maplibre_css,
+    app_js,
 )
-
-with st.expander("Architecture"):
-    st.markdown(
-        "- **Main map:** standalone static Web GIS in `Vastushilpi/mandideep_webgis`.\n"
-        "- **Analysis:** this Streamlit inventory/dashboard.\n"
-        "- **Rendering:** MapLibre with ArcGIS Satellite default basemap.\n"
-        "- **Heavy layer:** 3D buildings are loaded by the standalone map in the background."
-    )
+components.html(component, height=1000, scrolling=False)
