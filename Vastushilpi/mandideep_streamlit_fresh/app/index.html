@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mandideep Web GIS</title>
+  <link rel="stylesheet" href="public/vendor/maplibre-gl.css" />
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside id="panel" class="panel">
+      <div class="brand">VASTUSHILPI <span>WEB GIS</span></div>
+      <h1>Mandideep Web GIS</h1>
+      <p class="muted">AOI, satellite tree inventory, terrain and 3D buildings.</p>
+      <div class="status-card"><strong id="status-title">Map ready</strong><p id="status">Loading the map shell…</p></div>
+
+      <section><h2>Map</h2>
+        <label>Basemap<select id="basemap"><option value="satellite">ArcGIS Satellite</option><option value="streets">ArcGIS Streets</option><option value="osm">OpenStreetMap</option></select></label>
+        <div class="button-row"><button id="fit">Zoom to AOI</button><button id="pitch">3D view</button></div>
+        <label class="check"><input id="terrain" type="checkbox" checked /> Terrain · 1.25×</label>
+      </section>
+
+      <section><h2>Layers</h2>
+        <label class="check"><input data-layer="aoi" type="checkbox" /> AOI boundary</label>
+        <label class="check"><input data-layer="buffer" type="checkbox" /> 100 m buffer</label>
+        <label class="check"><input data-layer="buildings" type="checkbox" checked /> 3D buildings <small>(on demand)</small></label>
+        <label class="check"><input data-layer="trees" type="checkbox" /> 3D trees</label>
+        <label class="check"><input data-layer="tree-points" type="checkbox" /> Tree point marks</label>
+        <label class="check"><input data-layer="tree-area" type="checkbox" /> Tree area polygon</label>
+      </section>
+
+      <section><h2>Measure</h2>
+        <div class="button-row"><button data-tool="distance">Line</button><button data-tool="area">Area</button></div>
+        <div class="button-row"><button data-tool="buffer">Buffer</button><button data-tool="clear">Clear</button></div>
+        <p id="measure-result" class="muted">Choose a tool, then click the map.</p>
+      </section>
+      <footer>Analysis CRS: EPSG:32643 · Display CRS: EPSG:4326<br />Data is local and versioned with this web app.</footer>
+    </aside>
+    <main class="map-wrap"><div id="map"></div><button id="panel-toggle" class="panel-toggle" aria-label="Toggle layers panel">☰</button><div class="map-title"><strong>Mandideep | Main map</strong><span>ArcGIS Satellite · terrain-ready · standalone web app</span></div><div id="legend" class="legend"><strong>Legend</strong><span><i class="swatch aoi"></i>AOI</span><span><i class="swatch tree"></i>Tree canopy</span><span><i class="swatch building"></i>Building</span><span><i class="swatch tree"></i>Tree area</span></div></main>
+  </div>
+  <script src="public/vendor/maplibre-gl.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
