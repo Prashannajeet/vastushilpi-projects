@@ -24,4 +24,8 @@ st.markdown(
 
 # The map and all GeoJSON files are served from static/ so relative fetches
 # work normally inside the map iframe.
-st.iframe("app/static/mandideep_aoi_3d_buildings.html", height=1000, scrolling=False)
+st.iframe(
+    "/app/static/mandideep_aoi_3d_buildings.html",
+    height=1000,
+    alt="Mandideep Web GIS map",
+)
