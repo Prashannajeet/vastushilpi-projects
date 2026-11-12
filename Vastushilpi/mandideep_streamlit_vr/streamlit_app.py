@@ -17,7 +17,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 
-APP_BUILD = "mandideep-streamlit-inline-map-2026-11-12"
+APP_BUILD = "mandideep-streamlit-inline-map-layer-cleanup-2026-11-12"
 PACKAGE_DIR = Path(__file__).resolve().parent
 DATA_DIR = PACKAGE_DIR / "data"
 MAP_DIR = PACKAGE_DIR.parent / "mandideep_webgis"

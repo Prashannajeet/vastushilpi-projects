@@ -4,7 +4,7 @@ This is the main Mandideep map application. It is a standalone static site based
 
 - MapLibre map shell with ArcGIS Satellite as the default basemap.
 - Local versioned GeoJSON assets; no Streamlit iframe and no Python runtime required to display the map.
-- Terrain, 3D buildings, 3D tree canopies/trunks, tree point marks, AOI, buffer and CAD linework as independently controlled layers.
+- Terrain, 3D buildings, 3D tree canopies/trunks, tree point marks, AOI and buffer as independently controlled layers. CAD, contours and feature labels are intentionally deferred for separate future layers.
 - Lazy loading keeps the 12 MB building layer out of the initial request path until it is enabled.
 - Streamlit is retained only for analysis and data preparation, not for the main user-facing map.
 
