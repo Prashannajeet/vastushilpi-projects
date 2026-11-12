@@ -24,7 +24,6 @@ MAP_DIR = PACKAGE_DIR.parent / "mandideep_webgis"
 DATA_FILES = (
     "mandideep_aoi_wgs84.geojson",
     "mandideep_aoi_buffer_100m_wgs84.geojson",
-    "lines_aoi_wgs84.geojson",
     "mandideep_overture_buildings_3d_wgs84.geojson",
     "mandideep_tree_3d_wgs84.geojson",
     "mandideep_tree_points_wgs84.geojson",
@@ -77,7 +76,6 @@ with st.sidebar:
     st.success("Map data embedded and ready")
     st.metric("Tree points", f"{len(payload.get('mandideep_tree_points_wgs84.geojson', {}).get('features', [])):,}")
     st.metric("3D buildings", f"{len(payload.get('mandideep_overture_buildings_3d_wgs84.geojson', {}).get('features', [])):,}")
-    st.metric("CAD/vector features", f"{len(payload.get('lines_aoi_wgs84.geojson', {}).get('features', [])):,}")
     st.caption("Analysis CRS: EPSG:32643 / UTM Zone 43N\nDisplay CRS: EPSG:4326")
     st.divider()
     st.markdown("**Vastushilpi Projects & Consultants Pvt. Ltd.**")
