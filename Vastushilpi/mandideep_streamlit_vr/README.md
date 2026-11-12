@@ -8,7 +8,7 @@ This package separates the GIS dashboard from the immersive viewer:
 
 ## Streamlit Community Cloud
 
-1. Push this folder to the `codex/mandideep-aoi-vr` branch.
+1. Push this folder to the `codex/mandideep-aoi-vr` branch of `Prashannajeet/vastushilpi-projects`.
 2. In Streamlit Community Cloud, select the repository, branch, and entrypoint `streamlit_app.py`.
 3. Confirm `requirements.txt` is detected.
 

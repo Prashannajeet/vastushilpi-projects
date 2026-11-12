@@ -8,7 +8,7 @@ import streamlit as st
 
 APP_DIR = Path(__file__).resolve().parent
 DATA_DIR = APP_DIR / "data"
-VR_URL = "https://prashannajeet.github.io/Narmada_Hydrology/Vastushilpi/mandideep_streamlit_vr/docs/mandideep_aoi_vr.html"
+VR_URL = "https://prashannajeet.github.io/vastushilpi-projects/Vastushilpi/mandideep_streamlit_vr/docs/mandideep_aoi_vr.html"
 
 st.set_page_config(page_title="Mandideep AOI VR", page_icon="🌳", layout="wide")
 st.title("Mandideep AOI — GIS and VR viewer")
