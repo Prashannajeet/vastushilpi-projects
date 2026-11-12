@@ -1,10 +1,11 @@
-# Mandideep AOI Streamlit + VR
+# Mandideep analysis dashboard
 
-This package separates the GIS dashboard from the immersive viewer:
+This package is the analysis companion to the main standalone Web GIS:
 
-- `streamlit_app.py` is the Streamlit data dashboard.
-- `docs/mandideep_aoi_vr.html` is the standalone WebXR viewer.
-- `data/` contains the prepared spatial layers used by both viewers.
+- `streamlit_app.py` is a lightweight inventory and analysis dashboard.
+- `../mandideep_webgis/` is the main map application.
+- `docs/mandideep_aoi_vr.html` remains the separate WebXR viewer.
+- `data/` contains the prepared spatial layers.
 
 ## Streamlit Community Cloud
 
@@ -12,13 +13,12 @@ This package separates the GIS dashboard from the immersive viewer:
 2. In Streamlit Community Cloud, select the repository, branch, and entrypoint `streamlit_app.py`.
 3. Confirm `requirements.txt` is detected.
 
-The standalone VR page should be published through GitHub Pages from the `docs/` folder. This keeps WebXR outside a Streamlit iframe, which is important for headset permissions.
+The main Web GIS is published separately through GitHub Pages. This keeps WebGL, terrain and 3D buildings outside a Streamlit iframe.
 
 ## Local test
 
 ```powershell
 python -m streamlit run streamlit_app.py
-python -m http.server 8765 --directory docs
 ```
 
-WebXR requires HTTPS when deployed publicly. GitHub Pages provides HTTPS automatically.
+Set `MANDIDEEP_WEBGIS_URL` if the map is hosted at a different URL. WebXR requires HTTPS when deployed publicly.
