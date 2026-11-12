@@ -3,6 +3,10 @@ from __future__ import annotations
 import streamlit as st
 
 
+# Deployment marker: forces Community Cloud to rebuild the static-file map shell.
+APP_BUILD = "mandideep-static-map-2026-11-12"
+
+
 st.set_page_config(page_title="Mandideep Web GIS", layout="wide", initial_sidebar_state="collapsed")
 st.markdown(
     """
