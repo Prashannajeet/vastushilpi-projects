@@ -6,6 +6,7 @@ This is the main Mandideep map application. It is a standalone static site based
 - Local versioned GeoJSON assets; no Streamlit iframe and no Python runtime required to display the map.
 - Terrain, 3D buildings, 3D tree canopies/trunks, AOI, buffer, OSM roads, railways, rivers/waterways, waterbodies, and an OSM-derived 3D flyover/pier layer as independently controlled layers. All project data layers are active by default. Tree point marks and tree area polygon are intentionally excluded. CAD, contours and feature labels are deferred for separate future layers.
 - Environmental sunlight controls directional 3D shading, intensity, and azimuth for buildings, trees, terrain, and flyover decks/piers. MapLibre's bundled renderer provides surface/side shading rather than survey-grade cast-shadow simulation.
+- Buildings use an off-white/peach palette with generated ground-shadow polygons; shadows respond to the sunlight azimuth and are visualization approximations, not photometric or engineering-grade shadow analysis.
 - Lazy loading keeps the 12 MB building layer out of the initial request path until it is enabled.
 - Streamlit is retained only for analysis and data preparation, not for the main user-facing map.
 
