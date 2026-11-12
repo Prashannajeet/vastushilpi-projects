@@ -27,5 +27,4 @@ st.markdown(
 st.iframe(
     "/app/static/mandideep_aoi_3d_buildings.html",
     height=1000,
-    alt="Mandideep Web GIS map",
 )
