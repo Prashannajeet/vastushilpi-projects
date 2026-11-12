@@ -16,4 +16,6 @@ python -m http.server 8080
 
 Then open `http://localhost:8080/`. A static server is required because browsers block `fetch()` from `file://` pages.
 
+Do not double-click `index.html`; that produces the expected `Failed to fetch` message because GeoJSON is loaded with browser `fetch()` calls.
+
 Data display CRS is WGS 84; source/analysis CRS is EPSG:32643 / UTM Zone 43N.
