@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import streamlit as st
 
 
@@ -22,9 +24,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# The map and all GeoJSON files are served from static/ so relative fetches
-# work normally inside the map iframe.
+# The deployment uses a self-contained local HTML file. This avoids relying on
+# Streamlit Cloud's static-file route, which is unavailable in this app.
+MAP_FILE = Path(__file__).resolve().parent / "static" / "mandideep_embedded_map.html"
 st.iframe(
-    "/app/static/mandideep_aoi_3d_buildings.html",
+    MAP_FILE,
     height=1000,
 )
