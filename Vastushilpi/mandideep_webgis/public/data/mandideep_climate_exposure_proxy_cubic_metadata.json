@@ -1,0 +1,15 @@
+{
+  "source": "mandideep_climate_exposure_proxy_wgs84.geojson",
+  "method": "Cubic interpolation for cartographic display, nearest-neighbor fill outside cubic convex hull",
+  "analysis_crs": "EPSG:32643",
+  "display_crs": "EPSG:4326",
+  "bounds": [
+    77.5030283,
+    23.0624953,
+    77.579925,
+    23.1164963
+  ],
+  "width": 1000,
+  "height": 800,
+  "limitation": "Smooth planning proxy only; not measured land-surface temperature or air temperature."
+}
