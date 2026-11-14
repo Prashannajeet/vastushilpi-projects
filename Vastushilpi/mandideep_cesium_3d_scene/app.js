@@ -15,6 +15,7 @@ viewer.camera.flyTo({destination:cameraDestination,orientation:cameraOrientation
 // of polygons and could stop Cesium rendering with an invalid typed-array length.
 status.textContent="Cesium scene ready · waiting for validated 3D Tiles endpoint";
 async function addSatelliteImagery(){try{const provider=await Cesium.ArcGisMapServerImageryProvider.fromUrl("https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer");viewer.imageryLayers.addImageryProvider(provider);status.textContent="Satellite imagery loaded · ArcGIS World Imagery"}catch(error){status.textContent="Scene ready · satellite imagery unavailable";console.error(error)}}
+viewer.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({url:"https://tile.openstreetmap.org/"}));
 addSatelliteImagery();
 document.querySelector("#fit").addEventListener("click",()=>viewer.camera.flyTo({destination:cameraDestination,orientation:cameraOrientation,duration:1.2}));
 document.querySelector("#toggle-terrain").addEventListener("click",event=>{const enabled=viewer.terrainProvider instanceof Cesium.EllipsoidTerrainProvider;event.currentTarget.textContent=`Terrain: ${enabled?"on":"off"}`;status.textContent=enabled?"Terrain requires a configured Cesium ion or terrain endpoint":"Ellipsoid terrain active"});
