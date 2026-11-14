@@ -10,6 +10,7 @@ This is the main Mandideep map application. It is a standalone static site based
 - Building façades use a stable Coolors grey palette from `#f8f9fa` through `#212529`, assigned from each feature identifier so neighboring footprints remain distinct across reloads.
 - The app building layer is a deduplicated merge of the current Overture/ML footprints and 3D-GloBFP India tile 1821, clipped to the updated AOI plus 100 m buffer.
 - Optional fog and rain overlays are presentation effects for scene context; they are not meteorological observations or forecasts.
+- Climate baseline: `tools/build_climate_exposure_proxy.py` creates a 100 m planning proxy from mapped building, road, tree-canopy, and water coverage. The result is `public/data/mandideep_climate_exposure_proxy_wgs84.geojson`; it is explicitly not a measured land-surface-temperature or air-temperature product. Satellite-derived LST/NDVI/NDBI and carbon modules remain the next evidence-based stage.
 - Lazy loading keeps the 12 MB building layer out of the initial request path until it is enabled.
 - Streamlit is retained only for analysis and data preparation, not for the main user-facing map.
 

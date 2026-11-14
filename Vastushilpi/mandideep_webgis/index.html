@@ -6,6 +6,7 @@
   <title>Mandideep Web GIS</title>
   <link rel="stylesheet" href="public/vendor/maplibre-gl.css" />
   <link rel="stylesheet" href="app.css" />
+  <style>.heat-high{background:#b2182b}.heat-mid{background:#ef8a62}.heat-low{background:#67a9cf}</style>
 </head>
 <body>
   <div class="app-shell">
@@ -36,6 +37,11 @@
         <label class="check"><input data-layer="osm-waterways" type="checkbox" checked /> Rivers / waterways</label>
         <label class="check"><input data-layer="osm-waterbodies" type="checkbox" checked /> Waterbodies</label>
         <label class="check"><input data-layer="flyovers" type="checkbox" checked /> 3D flyovers / bridge piers</label>
+      </section>
+
+      <section><h2>Climate baseline</h2>
+        <label class="check"><input id="climate-proxy-toggle" type="checkbox" checked /> Heat exposure proxy</label>
+        <p class="muted">100 m planning proxy from buildings, roads, tree canopy and water. Not measured temperature.</p>
       </section>
 
       <section><h2>Measure</h2>

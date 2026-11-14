@@ -1,0 +1,9 @@
+{
+  "analysis_crs": "EPSG:32643",
+  "display_crs": "EPSG:4326",
+  "grid_size_m": 100,
+  "cells": 1932,
+  "aoi_area_km2": 17.963,
+  "heat_proxy_definition": "0.62 building density + 0.23 road density - 0.95 canopy density - 0.35 water density",
+  "limitation": "Not a measured land-surface-temperature or air-temperature product."
+}
