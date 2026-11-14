@@ -10,6 +10,7 @@ Separate presentation instance for the Mandideep project. The main MapLibre app 
 - 978 3D tree canopy/trunk polygons with 5–30 m extrusion
 - 607 roads, 54 railways, 9 waterways, 8 waterbodies
 - 346 flyover / bridge-pier polygons with height attributes
+- Modeled roadside trees, electric poles and overhead wires generated from the road centerlines for visual context; these are not surveyed utility assets
 - Layer-by-layer visibility controls and isolated error handling
 
 All web paths are relative to `data/`; no Windows paths are referenced by the deployed app.
