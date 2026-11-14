@@ -1,0 +1,35 @@
+{
+  "product": "Landsat Collection 2 Level-2 Surface Temperature",
+  "platform": "landsat-9",
+  "item_id": "LC09_L2SP_145044_20261110_02_T1",
+  "acquisition_datetime": "2026-11-10T05:14:24.540189Z",
+  "cloud_cover_percent": 0.01,
+  "source_stac": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/landsat-c2-l2/items/LC09_L2SP_145044_20261110_02_T1",
+  "source_provider": "USGS Landsat Collection 2 via Microsoft Planetary Computer STAC",
+  "analysis_crs": "EPSG:32643",
+  "display_crs": "EPSG:4326",
+  "scale_factor": 0.00341802,
+  "additive_offset_kelvin": 149.0,
+  "qa_pixel_mask_bits": {
+    "fill": 0,
+    "dilated_cloud": 1,
+    "cirrus": 2,
+    "cloud": 3,
+    "cloud_shadow": 4,
+    "snow": 5
+  },
+  "valid_pixel_percent": 99.32,
+  "temperature_min_c": 29.17,
+  "temperature_max_c": 49.1,
+  "temperature_p02_c": 31.16,
+  "temperature_p98_c": 41.9,
+  "display_range_c": [
+    10.0,
+    50.0
+  ],
+  "limitations": [
+    "LST is radiative land-surface skin temperature, not near-surface air temperature.",
+    "The displayed raster is resampled for web display; the analysis GeoTIFF remains the clipped 30 m product.",
+    "Cloud, shadow, snow, and fill pixels are masked using QA_PIXEL bits 0\u20135."
+  ]
+}

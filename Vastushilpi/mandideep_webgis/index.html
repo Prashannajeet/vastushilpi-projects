@@ -6,7 +6,7 @@
   <title>Mandideep Web GIS</title>
   <link rel="stylesheet" href="public/vendor/maplibre-gl.css" />
   <link rel="stylesheet" href="app.css" />
-  <style>.heat-high{background:#b2182b}.heat-mid{background:#ef8a62}.heat-low{background:#67a9cf}.heat-gradient{height:9px;border-radius:3px;background:linear-gradient(90deg,#67a9cf 0%,#abd9e9 25%,#fee08b 50%,#fdae61 75%,#d73027 100%);margin:6px 0 3px}.heat-scale{display:flex;justify-content:space-between;color:#c6d9d7;font-size:10px}.heat-note{font-size:10px;color:#9bb2b4;line-height:1.35;margin-top:5px}</style>
+  <style>.heat-high{background:#b2182b}.heat-mid{background:#ef8a62}.heat-low{background:#67a9cf}.heat-gradient,.lst-gradient{height:9px;border-radius:3px;margin:6px 0 3px}.heat-gradient{background:linear-gradient(90deg,#67a9cf 0%,#abd9e9 25%,#fee08b 50%,#fdae61 75%,#d73027 100%)}.lst-gradient{background:linear-gradient(90deg,#313695 0%,#4575b4 25%,#fee090 50%,#f46d43 75%,#a50026 100%)}.heat-scale{display:flex;justify-content:space-between;color:#c6d9d7;font-size:10px}.heat-note{font-size:10px;color:#9bb2b4;line-height:1.35;margin-top:5px}</style>
 </head>
 <body>
   <div class="app-shell">
@@ -40,7 +40,11 @@
       </section>
 
       <section><h2>Climate baseline</h2>
-        <label class="check"><input id="climate-proxy-toggle" type="checkbox" checked /> Heat exposure proxy</label>
+        <label class="check"><input id="lst-toggle" type="checkbox" checked /> Measured LST · Landsat 9</label>
+        <p id="lst-source-note" class="muted">Loading official Landsat surface temperature…</p>
+        <div class="lst-gradient" aria-label="Measured land-surface temperature from 10 to 50 degrees Celsius"></div>
+        <div class="heat-scale"><span>10 °C</span><span>30 °C</span><span>50 °C</span></div>
+        <label class="check"><input id="climate-proxy-toggle" type="checkbox" /> Heat exposure proxy</label>
         <p class="muted">Smooth cubic display from a 100 m planning proxy using buildings, roads, tree canopy and water. Not measured temperature.</p>
         <div class="heat-gradient" aria-label="Heat exposure proxy score from lower to higher"></div>
         <div class="heat-scale"><span>0 · Lower</span><span>50 · Moderate</span><span>100 · High</span></div>
@@ -54,7 +58,7 @@
       </section>
       <footer>Analysis CRS: EPSG:32643 · Display CRS: EPSG:4326<br />Data is local and versioned with this web app.</footer>
     </aside>
-    <main class="map-wrap"><div id="map"></div><canvas id="weather-canvas" aria-hidden="true"></canvas><button id="panel-toggle" class="panel-toggle" aria-label="Toggle layers panel">☰</button><div class="map-title"><strong>Mandideep | Main map</strong><span>ArcGIS Satellite · terrain-ready · standalone web app</span></div><div id="legend" class="legend"><strong>Legend</strong><span><i class="swatch aoi"></i>AOI</span><span><i class="swatch tree"></i>Tree canopy</span><span><i class="swatch building"></i>Building</span><span><i class="swatch road"></i>Roads + class balloons</span><span><i class="swatch rail"></i>Railways</span><span><i class="swatch water"></i>Water body polygons</span><span><i class="swatch flyover"></i>3D flyover</span><span><i class="heat-gradient"></i>Heat proxy score · not °C</span><span class="heat-scale"><span>0 lower</span><span>50 moderate</span><span>100 high</span></span></div></main>
+    <main class="map-wrap"><div id="map"></div><canvas id="weather-canvas" aria-hidden="true"></canvas><button id="panel-toggle" class="panel-toggle" aria-label="Toggle layers panel">☰</button><div class="map-title"><strong>Mandideep | Main map</strong><span>ArcGIS Satellite · terrain-ready · standalone web app</span></div><div id="legend" class="legend"><strong>Legend</strong><span><i class="swatch aoi"></i>AOI</span><span><i class="swatch tree"></i>Tree canopy</span><span><i class="swatch building"></i>Building</span><span><i class="swatch road"></i>Roads + class balloons</span><span><i class="swatch rail"></i>Railways</span><span><i class="swatch water"></i>Water body polygons</span><span><i class="swatch flyover"></i>3D flyover</span><span><i class="lst-gradient"></i>Measured LST · °C</span><span class="heat-scale"><span>10</span><span>30</span><span>50</span></span><span><i class="heat-gradient"></i>Heat proxy · not °C</span><span class="heat-scale"><span>0 lower</span><span>50 moderate</span><span>100 high</span></span></div></main>
   </div>
   <script src="public/vendor/maplibre-gl.js"></script>
   <script src="app.js"></script>
