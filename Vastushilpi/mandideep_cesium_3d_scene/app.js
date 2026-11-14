@@ -4,7 +4,7 @@ const status=document.querySelector("#status");
 const viewer=new Cesium.Viewer("cesiumContainer",{animation:false,timeline:false,baseLayerPicker:false,geocoder:false,homeButton:false,sceneModePicker:false,selectionIndicator:true,infoBox:true,baseLayer:false,terrainProvider:new Cesium.EllipsoidTerrainProvider(),shouldAnimate:false});
 viewer.scene.globe.enableLighting=true;viewer.scene.globe.depthTestAgainstTerrain=false;viewer.scene.fog.enabled=true;viewer.scene.fog.density=0.00008;viewer.scene.sun.show=true;
 const aoi=Cesium.Rectangle.fromDegrees(AOI_BOUNDS.west,AOI_BOUNDS.south,AOI_BOUNDS.east,AOI_BOUNDS.north);
-const cameraDestination=Cesium.Cartesian3.fromDegrees(77.5415,23.0895,20000);
+const cameraDestination=Cesium.Cartesian3.fromDegrees(77.5415,23.0895,100000);
 const cameraOrientation={heading:0,pitch:Cesium.Math.toRadians(-90),roll:0};
 viewer.scene.mode=Cesium.SceneMode.SCENE3D;
 viewer.scene.globe.show=true;
