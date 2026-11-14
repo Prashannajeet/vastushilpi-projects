@@ -6,7 +6,7 @@
   <title>Mandideep Web GIS</title>
   <link rel="stylesheet" href="public/vendor/maplibre-gl.css" />
   <link rel="stylesheet" href="app.css" />
-  <style>.heat-high{background:#b2182b}.heat-mid{background:#ef8a62}.heat-low{background:#67a9cf}</style>
+  <style>.heat-high{background:#b2182b}.heat-mid{background:#ef8a62}.heat-low{background:#67a9cf}.heat-gradient{height:9px;border-radius:3px;background:linear-gradient(90deg,#67a9cf 0%,#abd9e9 25%,#fee08b 50%,#fdae61 75%,#d73027 100%);margin:6px 0 3px}.heat-scale{display:flex;justify-content:space-between;color:#c6d9d7;font-size:10px}.heat-note{font-size:10px;color:#9bb2b4;line-height:1.35;margin-top:5px}</style>
 </head>
 <body>
   <div class="app-shell">
@@ -42,6 +42,9 @@
       <section><h2>Climate baseline</h2>
         <label class="check"><input id="climate-proxy-toggle" type="checkbox" checked /> Heat exposure proxy</label>
         <p class="muted">Smooth cubic display from a 100 m planning proxy using buildings, roads, tree canopy and water. Not measured temperature.</p>
+        <div class="heat-gradient" aria-label="Heat exposure proxy score from lower to higher"></div>
+        <div class="heat-scale"><span>0 · Lower</span><span>50 · Moderate</span><span>100 · High</span></div>
+        <div class="heat-note">Proxy score only — values are not degrees Celsius. Satellite LST can be added as a separate measured layer.</div>
       </section>
 
       <section><h2>Measure</h2>
@@ -51,7 +54,7 @@
       </section>
       <footer>Analysis CRS: EPSG:32643 · Display CRS: EPSG:4326<br />Data is local and versioned with this web app.</footer>
     </aside>
-    <main class="map-wrap"><div id="map"></div><canvas id="weather-canvas" aria-hidden="true"></canvas><button id="panel-toggle" class="panel-toggle" aria-label="Toggle layers panel">☰</button><div class="map-title"><strong>Mandideep | Main map</strong><span>ArcGIS Satellite · terrain-ready · standalone web app</span></div><div id="legend" class="legend"><strong>Legend</strong><span><i class="swatch aoi"></i>AOI</span><span><i class="swatch tree"></i>Tree canopy</span><span><i class="swatch building"></i>Building</span><span><i class="swatch road"></i>Roads + class balloons</span><span><i class="swatch rail"></i>Railways</span><span><i class="swatch water"></i>Water body polygons</span><span><i class="swatch flyover"></i>3D flyover</span></div></main>
+    <main class="map-wrap"><div id="map"></div><canvas id="weather-canvas" aria-hidden="true"></canvas><button id="panel-toggle" class="panel-toggle" aria-label="Toggle layers panel">☰</button><div class="map-title"><strong>Mandideep | Main map</strong><span>ArcGIS Satellite · terrain-ready · standalone web app</span></div><div id="legend" class="legend"><strong>Legend</strong><span><i class="swatch aoi"></i>AOI</span><span><i class="swatch tree"></i>Tree canopy</span><span><i class="swatch building"></i>Building</span><span><i class="swatch road"></i>Roads + class balloons</span><span><i class="swatch rail"></i>Railways</span><span><i class="swatch water"></i>Water body polygons</span><span><i class="swatch flyover"></i>3D flyover</span><span><i class="heat-gradient"></i>Heat proxy score · not °C</span><span class="heat-scale"><span>0 lower</span><span>50 moderate</span><span>100 high</span></span></div></main>
   </div>
   <script src="public/vendor/maplibre-gl.js"></script>
   <script src="app.js"></script>
