@@ -9,7 +9,6 @@ const cameraOrientation={heading:0,pitch:Cesium.Math.toRadians(-90),roll:0};
 viewer.scene.mode=Cesium.SceneMode.SCENE3D;
 viewer.scene.globe.show=true;
 viewer.scene.globe.baseColor=Cesium.Color.fromCssColorString("#9cae88");
-viewer.camera.flyTo({destination:cameraDestination,orientation:cameraOrientation,duration:0});
 // Keep this instance intentionally lightweight until a validated Cesium 3D Tiles
 // endpoint is available. The previous GeoJSON fallback loaded tens of thousands
 // of polygons and could stop Cesium rendering with an invalid typed-array length.
