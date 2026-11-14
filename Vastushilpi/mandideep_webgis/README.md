@@ -29,6 +29,11 @@ contributors, retrieved by `tools/fetch_osm.py`, licensed under the Open Databas
 License (ODbL). The extract is stored locally so the production map does not
 depend on an Overpass request at runtime.
 
+Roads are clipped by `tools/clip_osm_roads_to_aoi.py` in EPSG:32643 / UTM Zone
+43N. The app uses `mandideep_osm_roads_buffer100m_wgs84.geojson` for context
+around the AOI; `mandideep_osm_roads_aoi_wgs84.geojson` is also produced for
+exact-AOI GIS use.
+
 The flyover layer is a visualization approximation generated from OSM ways with
 `bridge=*` tags. Deck widths, deck heights, and pier spacing are inferred for
 display and must not be used as structural, clearance, or construction data.
