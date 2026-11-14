@@ -1,7 +1,8 @@
 "use strict";
 const AOI_BOUNDS={west:77.5030283,south:23.0624953,east:77.5799250,north:23.1164963};
 const status=document.querySelector("#status");
-const viewer=new Cesium.Viewer("cesiumContainer",{animation:false,timeline:false,baseLayerPicker:false,geocoder:false,homeButton:false,sceneModePicker:false,selectionIndicator:true,infoBox:true,imageryProvider:new Cesium.UrlTemplateImageryProvider({url:"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",credit:"Tiles © Esri"}),terrainProvider:new Cesium.EllipsoidTerrainProvider(),shouldAnimate:false});
+const imageryProvider=new Cesium.UrlTemplateImageryProvider({url:"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",credit:"Tiles © Esri"});
+const viewer=new Cesium.Viewer("cesiumContainer",{animation:false,timeline:false,baseLayerPicker:false,geocoder:false,homeButton:false,sceneModePicker:false,selectionIndicator:true,infoBox:true,baseLayer:new Cesium.ImageryLayer(imageryProvider),terrainProvider:new Cesium.EllipsoidTerrainProvider(),shouldAnimate:false});
 viewer.scene.globe.enableLighting=true;viewer.scene.globe.depthTestAgainstTerrain=false;viewer.scene.fog.enabled=true;viewer.scene.fog.density=0.00008;viewer.scene.sun.show=true;
 const aoi=Cesium.Rectangle.fromDegrees(AOI_BOUNDS.west,AOI_BOUNDS.south,AOI_BOUNDS.east,AOI_BOUNDS.north);
 const cameraDestination=Cesium.Cartesian3.fromDegrees(77.5415,23.0895,20000);
