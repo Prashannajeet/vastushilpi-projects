@@ -4,12 +4,10 @@ const status=document.querySelector("#status");
 const viewer=new Cesium.Viewer("cesiumContainer",{animation:false,timeline:false,baseLayerPicker:false,geocoder:false,homeButton:false,sceneModePicker:false,selectionIndicator:true,infoBox:true,imageryProvider:new Cesium.UrlTemplateImageryProvider({url:"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",credit:"Tiles © Esri"}),terrainProvider:new Cesium.EllipsoidTerrainProvider(),shouldAnimate:false});
 viewer.scene.globe.enableLighting=true;viewer.scene.globe.depthTestAgainstTerrain=false;viewer.scene.fog.enabled=true;viewer.scene.fog.density=0.00008;viewer.scene.sun.show=true;
 const aoi=Cesium.Rectangle.fromDegrees(AOI_BOUNDS.west,AOI_BOUNDS.south,AOI_BOUNDS.east,AOI_BOUNDS.north);
-const viewDestination=Cesium.Cartesian3.fromDegrees(77.5415,23.0895,18000);
-const viewOrientation={heading:0,pitch:Cesium.Math.toRadians(-65),roll:0};
-viewer.camera.setView({destination:viewDestination,orientation:viewOrientation});
+viewer.camera.flyTo({destination:aoi,duration:0});
 // Keep this instance intentionally lightweight until a validated Cesium 3D Tiles
 // endpoint is available. The previous GeoJSON fallback loaded tens of thousands
 // of polygons and could stop Cesium rendering with an invalid typed-array length.
 status.textContent="Cesium scene ready · waiting for validated 3D Tiles endpoint";
-document.querySelector("#fit").addEventListener("click",()=>viewer.camera.flyTo({destination:viewDestination,orientation:viewOrientation,duration:1.2}));
+document.querySelector("#fit").addEventListener("click",()=>viewer.camera.flyTo({destination:aoi,duration:1.2}));
 document.querySelector("#toggle-terrain").addEventListener("click",event=>{const enabled=viewer.terrainProvider instanceof Cesium.EllipsoidTerrainProvider;event.currentTarget.textContent=`Terrain: ${enabled?"on":"off"}`;status.textContent=enabled?"Terrain requires a configured Cesium ion or terrain endpoint":"Ellipsoid terrain active"});
