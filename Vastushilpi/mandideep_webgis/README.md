@@ -24,6 +24,10 @@ Do not double-click `index.html`; that produces the expected `Failed to fetch` m
 
 Data display CRS is WGS 84; source/analysis CRS is EPSG:32643 / UTM Zone 43N.
 
+The approved AOI is sourced from `AOI Mandideep.kmz`, updated by
+`tools/update_mandideep_aoi_from_kmz.py`, and has an area of approximately
+17.963 km². Its 100 m buffer is regenerated from the approved boundary.
+
 OSM layers are a bounded extract from the Overpass API. Source: OpenStreetMap
 contributors, retrieved by `tools/fetch_osm.py`, licensed under the Open Database
 License (ODbL). The extract is stored locally so the production map does not
