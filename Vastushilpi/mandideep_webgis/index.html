@@ -32,7 +32,7 @@
         <label class="check"><input data-layer="buffer" type="checkbox" checked /> 100 m buffer</label>
         <label class="check"><input data-layer="buildings" type="checkbox" checked /> 3D buildings</label>
         <label class="check"><input data-layer="trees" type="checkbox" checked /> 3D trees</label>
-        <label class="check"><input data-layer="osm-roads" type="checkbox" checked /> Roads</label>
+        <label class="check"><input data-layer="osm-roads" type="checkbox" checked /> Roads + names</label>
         <label class="check"><input data-layer="osm-railways" type="checkbox" checked /> Railways</label>
         <label class="check"><input data-layer="osm-waterways" type="checkbox" checked /> Rivers / waterways</label>
         <label class="check"><input data-layer="osm-waterbodies" type="checkbox" checked /> Water body polygons</label>
@@ -51,7 +51,7 @@
       </section>
       <footer>Analysis CRS: EPSG:32643 · Display CRS: EPSG:4326<br />Data is local and versioned with this web app.</footer>
     </aside>
-    <main class="map-wrap"><div id="map"></div><canvas id="weather-canvas" aria-hidden="true"></canvas><button id="panel-toggle" class="panel-toggle" aria-label="Toggle layers panel">☰</button><div class="map-title"><strong>Mandideep | Main map</strong><span>ArcGIS Satellite · terrain-ready · standalone web app</span></div><div id="legend" class="legend"><strong>Legend</strong><span><i class="swatch aoi"></i>AOI</span><span><i class="swatch tree"></i>Tree canopy</span><span><i class="swatch building"></i>Building</span><span><i class="swatch road"></i>Roads</span><span><i class="swatch rail"></i>Railways</span><span><i class="swatch water"></i>Water body polygons</span><span><i class="swatch flyover"></i>3D flyover</span></div></main>
+    <main class="map-wrap"><div id="map"></div><canvas id="weather-canvas" aria-hidden="true"></canvas><button id="panel-toggle" class="panel-toggle" aria-label="Toggle layers panel">☰</button><div class="map-title"><strong>Mandideep | Main map</strong><span>ArcGIS Satellite · terrain-ready · standalone web app</span></div><div id="legend" class="legend"><strong>Legend</strong><span><i class="swatch aoi"></i>AOI</span><span><i class="swatch tree"></i>Tree canopy</span><span><i class="swatch building"></i>Building</span><span><i class="swatch road"></i>Roads + names</span><span><i class="swatch rail"></i>Railways</span><span><i class="swatch water"></i>Water body polygons</span><span><i class="swatch flyover"></i>3D flyover</span></div></main>
   </div>
   <script src="public/vendor/maplibre-gl.js"></script>
   <script src="app.js"></script>
