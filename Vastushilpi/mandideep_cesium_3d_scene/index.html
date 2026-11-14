@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mandideep Cesium 3D Scene</title>
+  <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.127/Build/Cesium/Widgets/widgets.css">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <aside class="panel">
+    <div class="eyebrow">VASTUSHILPI · 3D SCENE</div>
+    <h1>Mandideep Cesium 3D Scene</h1>
+    <p class="subtitle">Dedicated Cesium viewer for 3D Tiles, terrain and photorealistic scene assets.</p>
+    <button id="fit">Zoom to Mandideep AOI</button>
+    <button id="toggle-terrain">Terrain: off</button>
+    <p id="status">Preparing 3D scene…</p>
+    <p class="note">3D Tiles endpoint is ready to be connected when the textured tileset is available.</p>
+  </aside>
+  <main id="cesiumContainer" aria-label="Mandideep Cesium 3D Scene"></main>
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.127/Build/Cesium/Cesium.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
