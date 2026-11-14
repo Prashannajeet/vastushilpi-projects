@@ -1,0 +1,7 @@
+{
+  "source": "3D-GloBFP India",
+  "source_tile": "1821_77.5_22.5_78.75_23.75_IN.zip",
+  "source_format": "ESRI Shapefile archive",
+  "ready_cesium_tileset": false,
+  "note": "Mandideep buildings in the deployed scene are the validated clipped/merged GeoJSON derivative. No ready tileset.json was found for Mandideep."
+}

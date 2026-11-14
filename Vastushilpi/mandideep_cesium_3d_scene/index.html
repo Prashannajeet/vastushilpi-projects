@@ -3,19 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mandideep Cesium 3D Scene</title>
+  <title>Mandideep 3D GIS · Cesium</title>
   <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.127/Build/Cesium/Widgets/widgets.css">
   <link rel="stylesheet" href="app.css">
 </head>
 <body>
   <aside class="panel">
-    <div class="eyebrow">VASTUSHILPI · 3D SCENE</div>
-    <h1>Mandideep Cesium 3D Scene</h1>
-    <p class="subtitle">Dedicated Cesium viewer for 3D Tiles, terrain and photorealistic scene assets.</p>
-    <button id="fit">Zoom to Mandideep AOI</button>
-    <button id="toggle-terrain">Terrain: off</button>
-    <p id="status">Preparing 3D scene…</p>
-    <p class="note">3D Tiles endpoint is ready to be connected when the textured tileset is available.</p>
+    <div class="eyebrow">VASTUSHILPI · FINAL 3D GIS</div>
+    <h1>Mandideep 3D Scene</h1>
+    <p class="subtitle">Satellite imagery, terrain-ready layers, buildings, trees, transport and water infrastructure.</p>
+    <div class="actions"><button id="fit">Zoom to AOI</button><button id="toggle-terrain">Terrain: ellipsoid</button></div>
+    <section class="layers"><h2>Layers</h2><div id="layer-list"></div></section>
+    <section class="legend"><h2>Legend</h2><div><i class="swatch building"></i>Buildings</div><div><i class="swatch tree"></i>Trees</div><div><i class="swatch road"></i>Roads / rail</div><div><i class="swatch water"></i>Water</div><div><i class="swatch boundary"></i>AOI / buffer</div></section>
+    <p id="status" role="status">Preparing scene…</p>
+    <p class="note">Active project layers are local and versioned. The 3D-GloBFP source archive is recorded in <code>data/tile-source-manifest.json</code>; no unverified Mandideep tileset endpoint is used.</p>
   </aside>
   <main id="cesiumContainer" aria-label="Mandideep Cesium 3D Scene"></main>
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.127/Build/Cesium/Cesium.js"></script>
