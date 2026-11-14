@@ -33,3 +33,5 @@ const weatherWrap=document.querySelector(".map-wrap"),weatherCanvas=document.que
 const SINGLE_BUILDING_GREY="#adb5bd";
 function applyStrongBuildingEdges(){if(!map.getLayer("building-footprint-outline"))return;map.setPaintProperty("building-footprints","fill-color",SINGLE_BUILDING_GREY);map.setPaintProperty("buildings-3d","fill-extrusion-color",SINGLE_BUILDING_GREY);map.setPaintProperty("building-footprint-outline","line-width",["interpolate",["linear"],["zoom"],10,1,13,1.5,16,2.5]);map.setPaintProperty("building-footprint-outline","line-opacity",["interpolate",["linear"],["zoom"],10,.88,13,.94,16,1]);map.off("idle",applyStrongBuildingEdges)}
 map.on("idle",applyStrongBuildingEdges);
+function addFacadePresentation(){if(!map.getLayer("buildings-3d")||map.getLayer("building-roof-highlight"))return;map.addLayer({id:"building-roof-highlight",type:"fill",source:"buildings",minzoom:13,paint:{"fill-color":"#dee2e6","fill-opacity":.22,"fill-outline-color":"#f8f9fa"}},"buildings-3d");groups.buildings.push("building-roof-highlight")}
+map.on("idle",addFacadePresentation);
