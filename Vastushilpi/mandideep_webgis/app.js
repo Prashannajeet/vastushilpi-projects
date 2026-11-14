@@ -35,3 +35,5 @@ function applyStrongBuildingEdges(){if(!map.getLayer("building-footprint-outline
 map.on("idle",applyStrongBuildingEdges);
 function addFacadePresentation(){if(!map.getLayer("buildings-3d")||map.getLayer("building-roof-highlight"))return;map.addLayer({id:"building-roof-highlight",type:"fill",source:"buildings",minzoom:13,paint:{"fill-color":"#dee2e6","fill-opacity":.22,"fill-outline-color":"#f8f9fa"}},"buildings-3d");groups.buildings.push("building-roof-highlight")}
 map.on("idle",addFacadePresentation);
+function applyDefaultSunlight(){if(!map.getLayer("terrain-hillshade"))return;applySunlight();map.off("idle",applyDefaultSunlight)}
+map.on("idle",applyDefaultSunlight);
