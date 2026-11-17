@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#06111f">
+  <meta name="description" content="NITA GeoAI field app for roads, stormwater drainage, and associated asset geotagging.">
+  <title>NITA GeoAI · Roads & Drainage Geotagging</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg">
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <style>
+    :root { --ink:#142b3b; --brand:#06111f; --brand-cyan:#00d4ff; --brand-teal:#00bfa6; --road:#e69219; --drain:#009fbe; --paper:#fff; --bg:#eef4f7; --line:#cfdee5; --muted:#607685; --bad:#c83e49; --warn:#a36816; --good:#178265; }
+    * { box-sizing:border-box; }
+    body { margin:0; font:14px/1.45 Inter,Segoe UI,Arial,sans-serif; color:var(--ink); background:var(--bg); }
+    button,input,select,textarea { font:inherit; }
+    button { cursor:pointer; touch-action:manipulation; }
+    header { position:sticky; top:0; z-index:1000; display:flex; align-items:center; gap:12px; padding:12px max(14px,env(safe-area-inset-left)); color:#fff; background:radial-gradient(circle at 80% 0,rgba(0,191,166,.18),transparent 35%),linear-gradient(130deg,#06111f,#102944); border-bottom:1px solid rgba(0,212,255,.24); box-shadow:0 4px 18px #06111f55; }
+    .nita-logo-mark { display:grid; place-items:center; width:42px; height:42px; flex:0 0 42px; border-radius:12px; color:#06111f; background:linear-gradient(135deg,#00d4ff,#00bfa6); box-shadow:0 0 24px rgba(0,212,255,.25); font-size:21px; font-weight:900; }
+    header h1 { margin:0; font-size:17px; line-height:1.2; }
+    header p { margin:2px 0 0; font-size:11px; color:#aab7c4; }
+    .brand-name { color:var(--brand-cyan); font-size:10px; font-weight:900; letter-spacing:.11em; text-transform:uppercase; }
+    .portal-link { margin-left:auto; color:#d7e8ec; font-size:11px; text-decoration:none; white-space:nowrap; }
+    .portal-link:hover,.portal-link:focus-visible { color:var(--brand-cyan); }
+    .offline { padding:5px 9px; border:1px solid #ffffff44; border-radius:20px; font-size:11px; white-space:nowrap; }
+    main { width:min(920px,100%); margin:auto; padding:14px 14px 92px; }
+    .screen { display:none; }
+    .screen.active { display:block; }
+    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:12px; }
+    .stat,.card { background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:0 3px 12px #153d4410; }
+    .stat { padding:12px; }
+    .stat b { display:block; font-size:22px; color:var(--brand); }
+    .stat span { color:var(--muted); font-size:11px; }
+    #map { height:330px; border-radius:14px; border:1px solid var(--line); background:#dfe9e6; }
+    #surveyMap { height:280px; margin-bottom:10px; border-radius:12px; border:1px solid var(--line); background:#dfe9e6; }
+    .toolbar,.filters,.actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .toolbar { justify-content:space-between; align-items:center; margin:12px 0; }
+    .filters button,.small { border:1px solid var(--line); background:#fff; color:var(--ink); padding:8px 11px; border-radius:20px; }
+    .filters button.active { color:#fff; border-color:var(--brand); background:var(--brand); }
+    .primary,.secondary,.danger { border:0; border-radius:10px; padding:11px 14px; font-weight:700; }
+    .button-link { display:block; text-align:center; text-decoration:none; }
+    .primary { color:#06111f; background:linear-gradient(135deg,var(--brand-cyan),var(--brand-teal)); }
+    .secondary { color:var(--brand); background:#dcebea; }
+    .danger { color:#fff; background:var(--bad); }
+    .wide { width:100%; }
+    h2 { margin:14px 0 10px; font-size:18px; }
+    .records { display:grid; gap:9px; }
+    .record { display:grid; grid-template-columns:44px 1fr auto; gap:10px; align-items:center; padding:11px; }
+    .badge { display:grid; place-items:center; width:42px; height:42px; border-radius:12px; color:#fff; font-weight:800; }
+    .record h3 { margin:0; font-size:14px; }
+    .record p { margin:2px 0 0; color:var(--muted); font-size:11px; }
+    .sync-state { font-weight:800; }
+    .sync-state.synced { color:var(--good); }
+    .sync-state.pending { color:var(--warn); }
+    .condition { padding:4px 7px; border-radius:10px; font-size:10px; font-weight:800; }
+    .Good { color:var(--good); background:#e0f1e8; } .Fair { color:var(--warn); background:#fff0d4; } .Poor,.Critical { color:var(--bad); background:#f9dfe2; }
+    form.card { padding:14px; }
+    .mobile-guide { display:none; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:11px; }
+    .field { margin-bottom:11px; }
+    label { display:block; margin-bottom:5px; color:#36545a; font-size:12px; font-weight:700; }
+    input,select,textarea { width:100%; padding:11px; border:1px solid #bfcfcd; border-radius:9px; background:#fff; color:var(--ink); }
+    input[readonly] { color:#36545a; background:#edf3f5; }
+    textarea { min-height:76px; resize:vertical; }
+    input:focus,select:focus,textarea:focus { outline:2px solid #68aabb66; border-color:#37869a; }
+    .gps { display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:end; }
+    .hint { margin:4px 0 0; color:var(--muted); font-size:11px; }
+    .gps-quality { display:inline-block; margin-left:5px; padding:2px 7px; border-radius:10px; font-size:10px; font-weight:800; }
+    .gps-quality.excellent { color:#fff; background:var(--good); }
+    .gps-quality.good { color:#245f49; background:#d9eee4; }
+    .gps-quality.fair { color:#80520d; background:#fff0d4; }
+    .gps-quality.low { color:#8d2832; background:#f9dfe2; }
+    .photo-slots { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+    .photo-slot { position:relative; min-height:145px; overflow:hidden; border:2px dashed #9eb6c2; border-radius:12px; color:var(--muted); background:#f6fafb; text-align:center; }
+    .photo-slot.required { border-color:var(--brand-teal); }
+    .photo-slot input { position:absolute; inset:0; z-index:1; width:100%; height:100%; opacity:0; cursor:pointer; }
+    .photo-preview { display:grid; place-items:center; align-content:center; gap:4px; width:100%; height:100%; min-height:141px; padding:10px; }
+    .photo-preview img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    .photo-preview small { font-size:10px; }
+    .photo-slot .remove-photo { position:absolute; z-index:3; top:6px; right:6px; width:28px; height:28px; border:0; border-radius:50%; color:#fff; background:#06111fcc; }
+    .slot-label { position:absolute; z-index:2; left:6px; bottom:6px; padding:3px 7px; border-radius:8px; color:#fff; background:#06111fcc; font-size:10px; font-weight:800; }
+    .empty { padding:24px; text-align:center; color:var(--muted); }
+    .export-grid { display:grid; gap:10px; }
+    .notice { padding:12px; border-left:4px solid var(--drain); background:#e4f3f7; border-radius:8px; }
+    nav { position:fixed; z-index:1200; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(3,1fr); padding:7px 8px max(7px,env(safe-area-inset-bottom)); background:#fff; border-top:1px solid var(--line); box-shadow:0 -5px 18px #123f4a18; }
+    nav button { border:0; padding:8px; color:var(--muted); background:transparent; font-size:11px; font-weight:700; }
+    nav button.active { color:var(--brand); }
+    nav b { display:block; margin:auto; font-size:18px; }
+    .toast { position:fixed; z-index:2000; left:50%; bottom:82px; transform:translate(-50%,20px); padding:10px 14px; color:#fff; background:#183b42; border-radius:9px; opacity:0; pointer-events:none; transition:.2s; white-space:nowrap; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+    @media(max-width:600px) {
+      body { font-size:14px; overscroll-behavior-y:contain; -webkit-tap-highlight-color:transparent; }
+      header { min-height:64px; gap:9px; padding:9px 11px; }
+      .nita-logo-mark { width:38px; height:38px; flex-basis:38px; border-radius:10px; font-size:19px; }
+      header h1 { max-width:210px; overflow:hidden; font-size:14px; white-space:nowrap; text-overflow:ellipsis; }
+      header p { display:none; }
+      .brand-name { font-size:9px; }
+      .portal-link { margin-left:auto; font-size:0; }
+      .portal-link::after { content:'Hub'; font-size:10px; }
+      .offline { max-width:78px; overflow:hidden; padding:5px 7px; font-size:10px; text-overflow:ellipsis; }
+      main { width:100%; padding:10px 10px calc(92px + env(safe-area-inset-bottom)); }
+      h2 { margin:8px 2px 9px; font-size:17px; }
+      .stats { gap:6px; margin-bottom:9px; }
+      .stat { min-width:0; padding:9px 7px; border-radius:11px; }
+      .stat b { font-size:19px; }
+      .stat span { display:block; overflow:hidden; font-size:9px; white-space:nowrap; text-overflow:ellipsis; }
+      #map { height:240px; border-radius:12px; }
+      #surveyMap { height:220px; margin:0 -2px 9px; border-radius:11px; }
+      .toolbar { display:grid; gap:8px; margin:9px 0; }
+      .filters { flex-wrap:nowrap; overflow-x:auto; padding:1px 1px 4px; scrollbar-width:none; }
+      .filters::-webkit-scrollbar { display:none; }
+      .filters button,.small { min-height:42px; flex:0 0 auto; padding:9px 12px; }
+      .toolbar .filters:last-child { display:grid; grid-template-columns:auto 1fr auto; align-items:center; overflow:visible; }
+      #basemapSelect { width:100%!important; min-width:0; }
+      .record { grid-template-columns:40px minmax(0,1fr) auto; gap:8px; min-height:66px; padding:9px; }
+      .badge { width:38px; height:38px; border-radius:10px; font-size:12px; }
+      .record h3,.record p { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+      form.card { margin:0 -2px; padding:10px; border-radius:13px; }
+      .mobile-guide { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:-2px -2px 12px; padding:9px 10px; border-radius:9px; color:#dce9ef; background:linear-gradient(135deg,#06111f,#102944); }
+      .mobile-guide b { color:var(--brand-cyan); font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
+      .mobile-guide span { font-size:10px; text-align:right; }
+      .grid { grid-template-columns:1fr; gap:0; }
+      .field { margin-bottom:13px; }
+      label { margin-bottom:6px; font-size:12px; }
+      input,select,textarea { min-height:48px; padding:12px; border-radius:10px; font-size:16px; }
+      textarea { min-height:88px; }
+      .gps { grid-template-columns:1fr 1fr; gap:7px; }
+      .gps button { grid-column:1/-1; min-height:50px; }
+      .hint { font-size:10px; }
+      .photo-slots { grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+      .photo-slot { min-height:112px; border-radius:10px; }
+      .photo-preview { min-height:108px; padding:5px; }
+      .photo-preview b { font-size:12px; }
+      .photo-preview span { font-size:9px; }
+      .photo-preview small { display:none; }
+      .slot-label { right:4px; left:4px; bottom:4px; overflow:hidden; padding:3px 4px; font-size:8px; white-space:nowrap; text-overflow:ellipsis; }
+      .photo-slot .remove-photo { top:4px; right:4px; width:30px; height:30px; }
+      .form-actions { position:sticky; z-index:700; bottom:calc(70px + env(safe-area-inset-bottom)); flex-wrap:nowrap; margin:14px -10px -10px; padding:9px 10px; background:rgba(255,255,255,.96); border-top:1px solid var(--line); backdrop-filter:blur(12px); }
+      .form-actions button { min-height:50px; }
+      .form-actions .secondary { flex:0 0 30%; }
+      .form-actions .primary { flex:1; }
+      nav { min-height:68px; padding:4px 5px max(5px,env(safe-area-inset-bottom)); }
+      nav button { min-height:58px; padding:5px 3px; font-size:10px; }
+      nav b { font-size:20px; line-height:1.25; }
+      nav button[data-screen="survey"] b { display:grid; place-items:center; width:34px; height:34px; color:#06111f; background:linear-gradient(135deg,var(--brand-cyan),var(--brand-teal)); border-radius:50%; }
+      .toast { bottom:calc(82px + env(safe-area-inset-bottom)); max-width:calc(100% - 28px); overflow:hidden; font-size:12px; text-overflow:ellipsis; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="nita-logo-mark" aria-hidden="true">N</span>
+    <div><span class="brand-name">NITA GeoAI</span><h1>Roads & Drainage Geotagging</h1><p>AI & Geoanalytics field intelligence</p></div>
+    <a class="portal-link" href="/section/field-survey">Field Survey hub</a>
+    <span class="offline" id="networkStatus">Offline ready</span>
+  </header>
+
+  <main>
+    <section class="screen" id="screen-map">
+      <div class="stats">
+        <div class="stat"><b id="totalCount">0</b><span>Total records</span></div>
+        <div class="stat"><b id="roadCount">0</b><span>Road assets</span></div>
+        <div class="stat"><b id="drainCount">0</b><span>Drainage assets</span></div>
+        <div class="stat"><b id="pendingCount">0</b><span>Pending sync</span></div>
+      </div>
+      <div id="map" aria-label="Survey records map"></div>
+      <p class="hint map-note" id="vectorStatus">Loading Mandideep reference layers…</p>
+      <div class="toolbar">
+        <div class="filters">
+          <button class="active" data-filter="All">All</button>
+          <button data-filter="Road">Roads</button>
+          <button data-filter="Stormwater Drainage">Drainage</button>
+          <button data-filter="Attention">Needs attention</button>
+        </div>
+        <div class="filters">
+          <label for="basemapSelect" style="margin:0;align-self:center">Basemap</label>
+          <select class="small" id="basemapSelect" style="width:auto;padding-right:30px">
+            <option value="Satellite">Satellite imagery</option>
+            <option value="Topographic">Topographic</option>
+            <option value="OpenStreetMap">OpenStreetMap</option>
+          </select>
+          <button class="small" id="fitMap" type="button">Fit records</button>
+        </div>
+      </div>
+      <h2>Saved records</h2>
+      <div class="records" id="recordList"></div>
+    </section>
+
+    <section class="screen active" id="screen-survey">
+      <h2 id="formTitle">New survey record</h2>
+      <form class="card" id="surveyForm">
+        <div class="mobile-guide"><b>Field checklist</b><span>GPS location + Photo 1 required</span></div>
+        <input type="hidden" id="recordId" name="recordId">
+        <div class="grid">
+          <div class="field"><label for="project">Project / town</label><input id="project" name="project" required placeholder="e.g. Mandideep Industrial Area"></div>
+          <div class="field"><label for="zone">Zone / ward / package</label><input id="zone" name="zone" placeholder="Optional"></div>
+          <div class="field"><label for="surveyor">Surveyor</label><input id="surveyor" name="surveyor" required></div>
+          <div class="field"><label for="surveyDate">Device date</label><input id="surveyDate" name="surveyDate" type="date" readonly required></div>
+          <div class="field"><label for="surveyTime">Device time</label><input id="surveyTime" name="surveyTime" type="time" step="1" readonly required></div>
+          <div class="field"><label for="category">Infrastructure</label><select id="category" name="category" required><option>Road</option><option>Stormwater Drainage</option></select></div>
+          <div class="field"><label for="assetType">Asset type</label><select id="assetType" name="assetType" required></select></div>
+          <div class="field"><label for="assetCode">Asset ID</label><input id="assetCode" name="assetCode" required placeholder="Auto-generated if blank"></div>
+          <div class="field"><label for="assetName">Asset name / location</label><input id="assetName" name="assetName" required placeholder="Road name, junction, landmark"></div>
+        </div>
+        <input type="hidden" id="deviceTimestamp" name="deviceTimestamp"><input type="hidden" id="deviceTimezone" name="deviceTimezone">
+        <div class="field">
+          <label>GPS position (WGS 84)</label>
+          <div id="surveyMap" aria-label="Captured GPS location preview"></div>
+          <div class="gps">
+            <input id="latitude" name="latitude" inputmode="decimal" placeholder="Latitude from GPS" readonly required>
+            <input id="longitude" name="longitude" inputmode="decimal" placeholder="Longitude from GPS" readonly required>
+            <button class="primary" id="captureGps" type="button">Acquire high-accuracy GPS</button>
+          </div>
+          <p class="hint" id="gpsInfo">Stand in an open area, then tap the button. The app samples GPS for up to 30 seconds and keeps the best fix.</p>
+          <input type="hidden" id="gpsAccuracy" name="gpsAccuracy"><input type="hidden" id="gpsCapturedAt" name="gpsCapturedAt">
+          <input type="hidden" id="gpsAltitude" name="gpsAltitude"><input type="hidden" id="gpsAltitudeAccuracy" name="gpsAltitudeAccuracy"><input type="hidden" id="gpsSampleCount" name="gpsSampleCount">
+        </div>
+        <div class="grid">
+          <div class="field"><label for="chainage">Chainage / reference</label><input id="chainage" name="chainage" placeholder="e.g. 1+250"></div>
+          <div class="field"><label for="side">Side / direction</label><select id="side" name="side"><option value="">Not specified</option><option>Left</option><option>Right</option><option>Centre</option><option>Both sides</option><option>Upstream</option><option>Downstream</option></select></div>
+          <div class="field"><label for="dimensions">Dimensions</label><input id="dimensions" name="dimensions" placeholder="Length × width × depth / diameter"></div>
+          <div class="field"><label for="material">Material / surface</label><input id="material" name="material" placeholder="BT, CC, masonry, RCC, earth..."></div>
+          <div class="field"><label for="condition">Condition</label><select id="condition" name="condition" required><option>Good</option><option>Fair</option><option>Poor</option><option>Critical</option></select></div>
+          <div class="field"><label for="issue">Observed issue</label><input id="issue" name="issue" placeholder="Pothole, blockage, cracking, siltation..."></div>
+        </div>
+        <div class="field"><label for="remarks">Remarks / action required</label><textarea id="remarks" name="remarks"></textarea></div>
+        <div class="field">
+          <label>Photographs (3 separate slots)</label>
+          <div class="photo-slots" id="photoGrid">
+            <div class="photo-slot required"><input id="photoInput1" data-photo-slot="0" type="file" accept="image/*" capture="environment"><div class="photo-preview" id="photoPreview1"><b>Photo 1</b><span>Mandatory</span><small>Tap to capture or select</small></div></div>
+            <div class="photo-slot"><input id="photoInput2" data-photo-slot="1" type="file" accept="image/*" capture="environment"><div class="photo-preview" id="photoPreview2"><b>Photo 2</b><span>Optional</span><small>Tap to capture or select</small></div></div>
+            <div class="photo-slot"><input id="photoInput3" data-photo-slot="2" type="file" accept="image/*" capture="environment"><div class="photo-preview" id="photoPreview3"><b>Photo 3</b><span>Optional</span><small>Tap to capture or select</small></div></div>
+          </div>
+          <p class="hint" id="photoInfo">Photo 1 is mandatory. Images are compressed automatically before storage.</p>
+        </div>
+        <div class="actions form-actions"><button class="secondary" id="resetForm" type="button">Clear</button><button class="primary" id="submitSurvey" type="submit">Submit online</button></div>
+      </form>
+    </section>
+
+    <section class="screen" id="screen-export">
+      <h2>Export & backup</h2>
+      <div class="card" style="padding:14px">
+        <p class="notice">Submitted records are stored in the secured NITA GeoAI database. A device copy is retained for field resilience and offline retry; export regularly as an additional backup.</p>
+        <div class="export-grid">
+          <a class="primary wide button-link" href="/section/field-survey">Return to Field Survey hub</a>
+          <button class="primary wide" id="exportGeoJson" type="button">Download GeoJSON for GIS</button>
+          <button class="secondary wide" id="exportCsv" type="button">Download CSV register</button>
+          <button class="secondary wide" id="exportJson" type="button">Download full JSON with photographs</button>
+          <button class="danger wide" id="clearAll" type="button">Delete all device records</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav>
+    <button data-screen="map"><b>⌖</b>Map & records</button>
+    <button class="active" data-screen="survey"><b>＋</b>New survey</button>
+    <button data-screen="export"><b>⇩</b>Export</button>
+  </nav>
+  <div class="toast" id="toast"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script>
+    "use strict";
+    const STORAGE_KEY = "roadsDrainageSurveyRecordsV1";
+    const DRAFT_KEY = "roadsDrainageSurveyDraftV1";
+    const SESSION_API = "/api/field-survey/session";
+    const RECORDS_API = "/api/field-survey/roads-drainage/records";
+    const MAX_PHOTO_UPLOAD_BYTES = 180 * 1024;
+    const MAX_SUBMISSION_BYTES = 900 * 1024;
+    const SUBMISSION_TIMEOUT_MS = 45000;
+    const assetTypes = {
+      Road: ["Road segment", "Pothole / pavement defect", "Bridge", "Culvert", "Streetlight", "Road sign", "Guardrail / crash barrier", "Median", "Footpath", "Bus stop", "Utility crossing"],
+      "Stormwater Drainage": ["Drain segment", "Catch basin / inlet", "Drain manhole", "Inspection chamber", "Outfall", "Cross-drain / culvert", "Trash screen", "Pump / pumping station", "Blockage / dumping point", "Erosion / structural damage"]
+    };
+    const colors = { Road: "#c47725", "Stormwater Drainage": "#197b9b" };
+    const MANDIDEEP_LAYER_BASE = "./data/";
+    const MANDIDEEP_LAYER_CONFIG = [
+      { key:"aoi", label:"Mandideep AOI", file:"mandideep_aoi_wgs84.geojson", visible:true, style:{ color:"#00d4ff", weight:3, fill:false, opacity:.95 } },
+      { key:"roads", label:"Existing roads", file:"mandideep_osm_roads_buffer100m_wgs84.geojson", visible:true, style:{ color:"#ffb020", weight:2, opacity:.78 } },
+      { key:"waterways", label:"Waterways / drains", file:"mandideep_osm_waterways_wgs84.geojson", visible:true, style:{ color:"#00aee8", weight:3, opacity:.9 } },
+      { key:"waterbodies", label:"Waterbodies", file:"mandideep_osm_waterbodies_wgs84.geojson", visible:false, style:{ color:"#138fba", weight:2, fillColor:"#34bde7", fillOpacity:.28 } },
+      { key:"railways", label:"Railways", file:"mandideep_osm_railways_wgs84.geojson", visible:false, style:{ color:"#677985", weight:2, dashArray:"7 5", opacity:.8 } },
+      { key:"flyovers", label:"Flyovers", file:"mandideep_osm_flyovers_3d_wgs84.geojson", visible:false, style:{ color:"#e15c43", weight:2, fillColor:"#ff8b73", fillOpacity:.25 } }
+    ];
+    const records = loadRecords();
+    let photos = [null, null, null];
+    let filter = "All";
+    let map;
+    let markerLayer;
+    let activeBasemap;
+    let basemaps = {};
+    let surveyMap;
+    let surveyMarker;
+    let surveyAccuracyCircle;
+    let gpsWatchId = null;
+    let gpsTimer = null;
+    let bestGps = null;
+    let gpsSamples = 0;
+    let csrfToken = "";
+    let onlineSyncRunning = false;
+    let mandideepLayerPromise = null;
+    const mandideepInstalledMaps = new WeakSet();
+    const $ = (id) => document.getElementById(id);
+
+    function loadRecords() {
+      try { const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); return Array.isArray(value) ? value : []; }
+      catch { return []; }
+    }
+    function normalizePhotoSlots(value) {
+      const slots = [null, null, null];
+      if(Array.isArray(value)) value.slice(0, 3).forEach((photo, index) => { slots[index] = photo || null; });
+      return slots;
+    }
+    function photoCount(value) { return normalizePhotoSlots(value).filter(Boolean).length; }
+    function displayedPhotoCount(record) { return Number.isFinite(Number(record.photoCount)) ? Number(record.photoCount) : photoCount(record.photos); }
+    function storageRecord(record) {
+      if(record.syncStatus === "pending") return record;
+      return { ...record, photoCount:displayedPhotoCount(record), photos:[null,null,null] };
+    }
+    function persist() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records.map(storageRecord)));
+        renderAll();
+        return true;
+      } catch(error) {
+        console.warn("Field Survey device storage is full", error);
+        renderAll();
+        return false;
+      }
+    }
+    function toast(message, duration = 3200) { const node=$("toast"); node.textContent=message; node.classList.add("show"); clearTimeout(toast.timer); toast.timer=setTimeout(()=>node.classList.remove("show"),duration); }
+    function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g,(char)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char])); }
+    function validCoordinate(lat,lng) { return Number.isFinite(lat) && Number.isFinite(lng) && lat>=-90 && lat<=90 && lng>=-180 && lng<=180; }
+    function nextCode(category) { const prefix=category==="Road"?"RD":"SWD"; const max=records.filter(r=>r.category===category).reduce((n,r)=>Math.max(n,Number(String(r.assetCode).split("-").pop())||0),0); return `${prefix}-${String(max+1).padStart(4,"0")}`; }
+    function updateAssetTypes(selected="") { const category=$("category").value; $("assetType").innerHTML=assetTypes[category].map(type=>`<option ${type===selected?"selected":""}>${escapeHtml(type)}</option>`).join(""); if(!$("assetCode").value) $("assetCode").value=nextCode(category); }
+    function updateNetwork() { $("networkStatus").textContent=navigator.onLine?"Online":"Offline ready"; }
+    async function ensureSessionToken(force = false) {
+      if(csrfToken && !force) return csrfToken;
+      const response = await fetch(SESSION_API, { credentials:"same-origin", cache:"no-store" });
+      const body = await response.json().catch(() => ({}));
+      if(!response.ok || !body.csrf_token) throw new Error(body.error || "Field Survey session is unavailable.");
+      csrfToken = body.csrf_token;
+      return csrfToken;
+    }
+    async function submitRecordOnline(record) {
+      const payload = { ...record, photos:normalizePhotoSlots(record.photos), onlineOnly:undefined, syncStatus:undefined, syncedAt:undefined, ownerName:undefined, ownerUserId:undefined, photoCount:undefined };
+      const requestBody = JSON.stringify(payload);
+      const requestBytes = new Blob([requestBody]).size;
+      if(requestBytes > MAX_SUBMISSION_BYTES) throw new Error("Photographs are still too large for mobile upload. Remove an optional photograph and try again.");
+      for(let attempt = 0; attempt < 2; attempt += 1) {
+        const token = await ensureSessionToken(attempt > 0);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), SUBMISSION_TIMEOUT_MS);
+        let response;
+        try {
+          response = await fetch(RECORDS_API, {
+            method:"POST",
+            credentials:"same-origin",
+            cache:"no-store",
+            headers:{ "Content-Type":"application/json", "X-CSRF-Token":token },
+            body:requestBody,
+            signal:controller.signal
+          });
+        } catch(error) {
+          if(error.name === "AbortError") throw new Error("Mobile upload timed out. The record remains pending and will retry automatically.");
+          throw new Error("The server could not be reached. The record remains pending and will retry automatically.");
+        } finally {
+          clearTimeout(timeout);
+        }
+        const body = await response.json().catch(() => ({}));
+        if(response.status === 403 && attempt === 0) continue;
+        if(response.status === 401) throw new Error("Your survey session has expired. Sign in again; the pending record remains on this device.");
+        if(response.status === 413) throw new Error("The photograph upload is too large. Remove an optional photograph and try again.");
+        if(!response.ok || !body.record) throw new Error(body.error || `Online submission failed (${response.status}).`);
+        return body.record;
+      }
+      throw new Error("Online submission verification failed.");
+    }
+    function mergeOnlineRecords(onlineRecords) {
+      onlineRecords.forEach((online) => {
+        const index = records.findIndex((record) => record.id === online.id);
+        const local = index >= 0 ? records[index] : null;
+        const localPhotos = normalizePhotoSlots(local?.photos);
+        const hasLocalPhotos = localPhotos.some((photo) => photo?.dataUrl);
+        const placeholders = Array.from({ length:Math.min(3, Number(online.photoCount) || 0) }, () => ({ remote:true }));
+        const merged = {
+          ...online,
+          photos:hasLocalPhotos ? localPhotos : placeholders,
+          onlineOnly:!hasLocalPhotos,
+          syncStatus:"synced"
+        };
+        if(index >= 0) records[index] = merged;
+        else records.push(merged);
+      });
+    }
+    async function loadOnlineRecords() {
+      const response = await fetch(RECORDS_API, { credentials:"same-origin", cache:"no-store" });
+      const body = await response.json().catch(() => ({}));
+      if(!response.ok || !Array.isArray(body.records)) throw new Error(body.error || "Online survey records are unavailable.");
+      mergeOnlineRecords(body.records);
+      persist();
+    }
+    async function syncPendingRecords() {
+      const pending = records.filter((record) => record.syncStatus === "pending" && !record.onlineOnly);
+      for(const record of pending) {
+        try {
+          const online = await submitRecordOnline(record);
+          const index = records.findIndex((item) => item.id === record.id);
+          if(index >= 0) records[index] = { ...records[index], ...online, photos:records[index].photos, onlineOnly:false, syncStatus:"synced" };
+        } catch(error) {
+          console.warn("Pending Field Survey synchronization failed", error);
+        }
+      }
+      persist();
+    }
+    async function bootstrapOnlineSync() {
+      if(onlineSyncRunning || !navigator.onLine) return;
+      onlineSyncRunning = true;
+      try {
+        await ensureSessionToken();
+        await syncPendingRecords();
+        await loadOnlineRecords();
+      } catch(error) {
+        console.warn("Field Survey online synchronization is unavailable", error);
+      } finally {
+        onlineSyncRunning = false;
+      }
+    }
+    function updateDeviceTimestamp(force = false) {
+      if(!force && $("recordId").value) return;
+      const now = new Date();
+      const pad = (value) => String(value).padStart(2, "0");
+      $("surveyDate").value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+      $("surveyTime").value = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      $("deviceTimestamp").value = now.toISOString();
+      $("deviceTimezone").value = Intl.DateTimeFormat().resolvedOptions().timeZone || "Device local time";
+    }
+    function loadMandideepLayerData() {
+      if(mandideepLayerPromise) return mandideepLayerPromise;
+      mandideepLayerPromise = Promise.allSettled(MANDIDEEP_LAYER_CONFIG.map(async (config) => {
+        const response = await fetch(MANDIDEEP_LAYER_BASE + config.file);
+        if(!response.ok) throw new Error(`${config.label}: HTTP ${response.status}`);
+        return { config, data:await response.json() };
+      })).then((results) => {
+        const loaded = results.filter((result) => result.status === "fulfilled").map((result) => result.value);
+        const failed = results.length - loaded.length;
+        if($("vectorStatus")) $("vectorStatus").textContent = !loaded.length ? "Mandideep layers unavailable. Serve the Vastushilpi folder through localhost or HTTPS." : failed ? `${loaded.length}/${results.length} Mandideep reference layers loaded` : `${loaded.length} Mandideep reference layers ready · use the layers button on the map`;
+        return loaded;
+      }).catch((error) => {
+        if($("vectorStatus")) $("vectorStatus").textContent = "Mandideep layers unavailable. Serve the Vastushilpi folder through localhost or HTTPS.";
+        console.warn("Mandideep vector loading failed", error);
+        return [];
+      });
+      return mandideepLayerPromise;
+    }
+    async function installMandideepLayers(targetMap) {
+      if(!targetMap || mandideepInstalledMaps.has(targetMap)) return;
+      const sources = await loadMandideepLayerData();
+      if(!sources.length) return;
+      const overlays = {};
+      let aoiLayer = null;
+      sources.forEach(({ config, data }) => {
+        const layer = L.geoJSON(data, { style:config.style, interactive:false });
+        overlays[config.label] = layer;
+        if(config.visible) {
+          layer.addTo(targetMap);
+          layer.eachLayer((child) => child.bringToBack?.());
+        }
+        if(config.key === "aoi") aoiLayer = layer;
+      });
+      L.control.layers(null, overlays, { collapsed:true, position:"topright" }).addTo(targetMap);
+      mandideepInstalledMaps.add(targetMap);
+      if(targetMap === map && !records.length && aoiLayer?.getBounds().isValid()) targetMap.fitBounds(aoiLayer.getBounds(), { padding:[12,12] });
+    }
+    function initMap() {
+      if(!window.L){ $("map").innerHTML='<div class="empty">Map library needs an internet connection on first use. Saved records still work offline.</div>'; return; }
+      map=L.map("map",{zoomControl:true}).setView([23.25,77.4],12);
+      basemaps = {
+        Satellite: L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+          maxZoom: 19,
+          attribution: "Tiles © Esri and data providers"
+        }),
+        Topographic: L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", {
+          maxZoom: 19,
+          attribution: "Tiles © Esri and data providers"
+        }),
+        OpenStreetMap: L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 20,
+          attribution: "© OpenStreetMap contributors"
+        })
+      };
+      activeBasemap = basemaps.Satellite.addTo(map);
+      L.control.layers({ "Satellite imagery": basemaps.Satellite, Topographic: basemaps.Topographic, OpenStreetMap: basemaps.OpenStreetMap }, null, { position: "topright" }).addTo(map);
+      map.on("baselayerchange", (event) => {
+        const selected = Object.entries(basemaps).find(([, layer]) => layer === event.layer);
+        if(selected) $("basemapSelect").value = selected[0];
+        activeBasemap = event.layer;
+      });
+      markerLayer=L.layerGroup().addTo(map);
+      installMandideepLayers(map);
+    }
+    function switchBasemap(name) {
+      if(!map || !basemaps[name]) return;
+      Object.values(basemaps).forEach((layer) => map.removeLayer(layer));
+      activeBasemap = basemaps[name].addTo(map);
+    }
+    function initSurveyMap() {
+      if(surveyMap || !window.L) return;
+      surveyMap = L.map("surveyMap", { zoomControl: true, doubleClickZoom: false }).setView([23.25, 77.4], 12);
+      L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+        maxZoom: 19,
+        attribution: "Tiles © Esri and data providers"
+      }).addTo(surveyMap);
+      installMandideepLayers(surveyMap);
+    }
+    function gpsQuality(accuracy) {
+      if(accuracy <= 5) return { label: "Excellent", className: "excellent" };
+      if(accuracy <= 10) return { label: "Good", className: "good" };
+      if(accuracy <= 25) return { label: "Fair", className: "fair" };
+      return { label: "Low accuracy", className: "low" };
+    }
+    function showSurveyLocation(lat, lng, accuracy) {
+      initSurveyMap();
+      if(!surveyMap || !validCoordinate(lat, lng)) return;
+      const point = [lat, lng];
+      if(!surveyMarker) surveyMarker = L.marker(point, { draggable: false, title: "GPS location" }).addTo(surveyMap);
+      else surveyMarker.setLatLng(point);
+      if(!surveyAccuracyCircle) surveyAccuracyCircle = L.circle(point, { radius: Math.max(accuracy || 0, 1), color: "#123f4a", weight: 2, fillColor: "#58b9d0", fillOpacity: .18, interactive: false }).addTo(surveyMap);
+      else surveyAccuracyCircle.setLatLng(point).setRadius(Math.max(accuracy || 0, 1));
+      surveyMap.setView(point, accuracy && accuracy > 50 ? 17 : 19);
+    }
+    function showStoredSurveyLocation() {
+      const latitudeValue = $("latitude").value.trim(), longitudeValue = $("longitude").value.trim();
+      if(!latitudeValue || !longitudeValue) return;
+      const lat = Number(latitudeValue), lng = Number(longitudeValue), accuracy = Number($("gpsAccuracy").value);
+      if(validCoordinate(lat, lng)) showSurveyLocation(lat, lng, accuracy);
+    }
+    function stopGpsCapture(message = "") {
+      if(gpsWatchId !== null) navigator.geolocation.clearWatch(gpsWatchId);
+      gpsWatchId = null;
+      clearTimeout(gpsTimer);
+      gpsTimer = null;
+      $("captureGps").textContent = "Acquire high-accuracy GPS";
+      $("captureGps").disabled = false;
+      if(message) $("gpsInfo").innerHTML = message;
+    }
+    function acceptGpsPosition(position) {
+      const coords = position.coords;
+      if(!validCoordinate(coords.latitude, coords.longitude) || !Number.isFinite(coords.accuracy)) return;
+      gpsSamples += 1;
+      $("gpsSampleCount").value = String(gpsSamples);
+      if(bestGps && coords.accuracy >= bestGps.coords.accuracy) {
+        const quality = gpsQuality(bestGps.coords.accuracy);
+        $("gpsInfo").innerHTML = `Sampling… ${gpsSamples} readings · best ±${Math.round(bestGps.coords.accuracy)} m <span class="gps-quality ${quality.className}">${quality.label}</span>`;
+        return;
+      }
+      bestGps = position;
+      $("latitude").value = coords.latitude.toFixed(7);
+      $("longitude").value = coords.longitude.toFixed(7);
+      $("gpsAccuracy").value = coords.accuracy.toFixed(1);
+      $("gpsCapturedAt").value = new Date(position.timestamp).toISOString();
+      $("gpsAltitude").value = Number.isFinite(coords.altitude) ? coords.altitude.toFixed(2) : "";
+      $("gpsAltitudeAccuracy").value = Number.isFinite(coords.altitudeAccuracy) ? coords.altitudeAccuracy.toFixed(1) : "";
+      $("gpsSampleCount").value = String(gpsSamples);
+      const quality = gpsQuality(coords.accuracy);
+      $("gpsInfo").innerHTML = `Sampling… ${gpsSamples} readings · best ±${Math.round(coords.accuracy)} m <span class="gps-quality ${quality.className}">${quality.label}</span>`;
+      showSurveyLocation(coords.latitude, coords.longitude, coords.accuracy);
+      saveDraft();
+      if(coords.accuracy <= 5) {
+        stopGpsCapture(`Best fix ±${Math.round(coords.accuracy)} m · ${new Date(position.timestamp).toLocaleString()} <span class="gps-quality ${quality.className}">${quality.label}</span>`);
+        toast("Excellent GPS fix captured");
+      }
+    }
+    function startHighAccuracyGps() {
+      if(!navigator.geolocation) { toast("GPS is unavailable in this browser"); return; }
+      stopGpsCapture();
+      bestGps = null;
+      gpsSamples = 0;
+      $("captureGps").textContent = "Improving GPS fix…";
+      $("captureGps").disabled = true;
+      $("gpsInfo").textContent = "Requesting high-accuracy readings… Keep the device still with a clear view of the sky.";
+      gpsWatchId = navigator.geolocation.watchPosition(
+        acceptGpsPosition,
+        (error) => {
+          stopGpsCapture(error.code === 1 ? "Location permission was denied. Enable precise location for this site." : "Unable to obtain a GPS fix. Move outdoors and try again.");
+          toast(error.code === 1 ? "Precise location permission is required" : "GPS fix failed");
+        },
+        { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
+      );
+      gpsTimer = setTimeout(() => {
+        if(bestGps) {
+          const accuracy = bestGps.coords.accuracy, quality = gpsQuality(accuracy);
+          stopGpsCapture(`Best of ${gpsSamples} readings: ±${Math.round(accuracy)} m · ${new Date(bestGps.timestamp).toLocaleString()} <span class="gps-quality ${quality.className}">${quality.label}</span>`);
+          toast("Best available GPS fix retained");
+        } else {
+          stopGpsCapture("No GPS reading received. Move outdoors, enable precise location, and try again.");
+          toast("No GPS reading received");
+        }
+      }, 30000);
+    }
+    function visibleRecords() { return records.filter(r=>filter==="All" || r.category===filter || (filter==="Attention" && ["Poor","Critical"].includes(r.condition))); }
+    function renderMap() {
+      if(!markerLayer) return;
+      markerLayer.clearLayers();
+      visibleRecords().forEach(record=>{
+        const lat=Number(record.latitude),lng=Number(record.longitude); if(!validCoordinate(lat,lng)) return;
+        const marker=L.circleMarker([lat,lng],{radius:9,color:"#fff",weight:2,fillColor:colors[record.category],fillOpacity:1});
+        marker.bindPopup(`<b>${escapeHtml(record.assetCode)}</b><br>${escapeHtml(record.assetType)}<br>${escapeHtml(record.assetName)}<br>Condition: ${escapeHtml(record.condition)}`);
+        marker.addTo(markerLayer);
+      });
+    }
+    function fitMap() { if(!markerLayer || !markerLayer.getLayers().length){toast("No mapped records to fit");return;} map.fitBounds(L.featureGroup(markerLayer.getLayers()).getBounds().pad(.25)); }
+    function renderRecords() {
+      const list=$("recordList"), shown=visibleRecords();
+      if(!shown.length){list.innerHTML='<div class="card empty">No records in this view.</div>';return;}
+      list.innerHTML=shown.slice().reverse().map(r=>`<article class="card record" data-id="${escapeHtml(r.id)}"><span class="badge" style="background:${colors[r.category]}">${r.category==="Road"?"RD":"SW"}</span><div><h3>${escapeHtml(r.assetCode)} · ${escapeHtml(r.assetType)}</h3><p>${escapeHtml(r.assetName)}${r.zone?" · "+escapeHtml(r.zone):""} · ${displayedPhotoCount(r)} photo(s)${r.ownerName?" · "+escapeHtml(r.ownerName):""} · <span class="sync-state ${r.syncStatus==="pending"?"pending":"synced"}">${r.syncStatus==="pending"?"Pending sync":"Online"}</span></p></div><span class="condition ${escapeHtml(r.condition)}">${escapeHtml(r.condition)}</span></article>`).join("");
+      list.querySelectorAll(".record").forEach(node=>node.addEventListener("click",()=>{const record=records.find(item=>item.id===node.dataset.id);if(record?.onlineOnly){toast("Online record is read-only on this device");return;}editRecord(node.dataset.id);}));
+    }
+    function renderStats() { $("totalCount").textContent=records.length; $("roadCount").textContent=records.filter(r=>r.category==="Road").length; $("drainCount").textContent=records.filter(r=>r.category==="Stormwater Drainage").length; $("pendingCount").textContent=records.filter(r=>r.syncStatus==="pending").length; }
+    function renderPhotos() {
+      photos = normalizePhotoSlots(photos);
+      photos.forEach((photo, index) => {
+        const preview = $(`photoPreview${index + 1}`), slot = preview.parentElement;
+        slot.querySelector(".remove-photo")?.remove();
+        if(photo) {
+          const sizeKb = photo.compressedSize ? `${Math.round(photo.compressedSize / 1024)} KB` : "Compressed";
+          preview.innerHTML = `<img src="${photo.dataUrl}" alt="Survey photograph ${index + 1}"><span class="slot-label">Photo ${index + 1} · ${sizeKb}</span>`;
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "remove-photo";
+          remove.setAttribute("aria-label", `Remove photograph ${index + 1}`);
+          remove.textContent = "×";
+          remove.addEventListener("click", (event) => { event.stopPropagation(); photos[index] = null; renderPhotos(); saveDraft(); });
+          slot.appendChild(remove);
+        } else {
+          preview.innerHTML = `<b>Photo ${index + 1}</b><span>${index === 0 ? "Mandatory" : "Optional"}</span><small>Tap to capture or select</small>`;
+        }
+      });
+      const count = photos.filter(Boolean).length;
+      $("photoInfo").textContent = `${count}/3 photographs attached. Photo 1 is mandatory; all images are compressed automatically.`;
+    }
+    function renderAll() { renderStats(); renderRecords(); renderMap(); }
+    function switchScreen(name) {
+      document.querySelectorAll(".screen").forEach((node) => node.classList.toggle("active", node.id === `screen-${name}`));
+      document.querySelectorAll("nav button").forEach((node) => node.classList.toggle("active", node.dataset.screen === name));
+      if(name === "map") {
+        setTimeout(() => {
+          if(!map) initMap();
+          if(map) {
+            map.invalidateSize();
+            renderMap();
+          }
+        }, 50);
+      }
+      if(name === "survey") {
+        setTimeout(() => {
+          updateDeviceTimestamp();
+          initSurveyMap();
+          if(surveyMap) surveyMap.invalidateSize();
+          showStoredSurveyLocation();
+        }, 50);
+      }
+    }
+    function formObject() { return Object.fromEntries(new FormData($("surveyForm")).entries()); }
+    function saveDraft() {
+      const draft=formObject(); draft.photos=photos;
+      try { localStorage.setItem(DRAFT_KEY,JSON.stringify(draft)); }
+      catch(error) {
+        console.warn("Field Survey photo draft could not be cached", error);
+        try { localStorage.setItem(DRAFT_KEY,JSON.stringify({ ...draft, photos:[null,null,null] })); } catch {}
+      }
+    }
+    function restoreDraft() { try { const d=JSON.parse(localStorage.getItem(DRAFT_KEY)||"null"); if(!d)return; Object.entries(d).forEach(([key,value])=>{if(key!=="photos"&&$(key))$(key).value=value;}); updateAssetTypes(d.assetType); photos=normalizePhotoSlots(d.photos); renderPhotos(); } catch {} }
+    function clearForm() { stopGpsCapture(); $("surveyForm").reset(); $("recordId").value=""; updateDeviceTimestamp(true); photos=[null,null,null]; bestGps=null; gpsSamples=0; updateAssetTypes(); renderPhotos(); $("gpsInfo").textContent="Stand in an open area, then tap the button. The app samples GPS for up to 30 seconds and keeps the best fix."; $("formTitle").textContent="New survey record"; if(surveyMarker){surveyMap.removeLayer(surveyMarker);surveyMarker=null;} if(surveyAccuracyCircle){surveyMap.removeLayer(surveyAccuracyCircle);surveyAccuracyCircle=null;} localStorage.removeItem(DRAFT_KEY); }
+    function editRecord(id) { const r=records.find(item=>item.id===id); if(!r)return; Object.entries(r).forEach(([key,value])=>{if(key!=="photos"&&$(key))$(key).value=value??"";}); updateAssetTypes(r.assetType); photos=normalizePhotoSlots(r.photos); renderPhotos(); $("formTitle").textContent=`Edit ${r.assetCode}`; const accuracy=Number(r.gpsAccuracy),quality=gpsQuality(accuracy||999); $("gpsInfo").innerHTML=r.gpsCapturedAt?`Saved GPS fix ±${Math.round(accuracy)} m · ${new Date(r.gpsCapturedAt).toLocaleString()} <span class="gps-quality ${quality.className}">${quality.label}</span>`:"Capture a fresh GPS location before saving."; switchScreen("survey"); }
+    function compressImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = () => {
+          const image = new Image();
+          image.onerror = reject;
+          image.onload = () => {
+            const maxDimension = 1600;
+            const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
+            let canvas = document.createElement("canvas");
+            canvas.width = Math.max(1, Math.round(image.width * scale));
+            canvas.height = Math.max(1, Math.round(image.height * scale));
+            canvas.getContext("2d", { alpha: false }).drawImage(image, 0, 0, canvas.width, canvas.height);
+            let quality = .82;
+            let dataUrl = canvas.toDataURL("image/jpeg", quality);
+            const estimatedBytes = (value) => Math.ceil((value.length - value.indexOf(",") - 1) * .75);
+            for(let pass = 0; estimatedBytes(dataUrl) > MAX_PHOTO_UPLOAD_BYTES && pass < 14; pass += 1) {
+              if(quality > .52) {
+                quality -= .08;
+              } else {
+                const reduced = document.createElement("canvas");
+                reduced.width = Math.max(640, Math.round(canvas.width * .82));
+                reduced.height = Math.max(480, Math.round(canvas.height * .82));
+                reduced.getContext("2d", { alpha:false }).drawImage(canvas, 0, 0, reduced.width, reduced.height);
+                canvas = reduced;
+                quality = .72;
+              }
+              dataUrl = canvas.toDataURL("image/jpeg", quality);
+            }
+            if(estimatedBytes(dataUrl) > MAX_PHOTO_UPLOAD_BYTES) return reject(new Error("The photograph could not be reduced to the mobile upload limit."));
+            resolve({ name:file.name, type:"image/jpeg", originalSize:file.size, compressedSize:estimatedBytes(dataUrl), width:canvas.width, height:canvas.height, capturedAt:new Date().toISOString(), dataUrl });
+          };
+          image.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+    function download(name,type,content) { const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000); }
+    function geoJson() {
+      return {
+        type: "FeatureCollection",
+        name: "roads_stormwater_assets",
+        crs: { type: "name", properties: { name: "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+        features: records.map((record) => ({
+          type: "Feature",
+          id: record.id,
+          geometry: { type: "Point", coordinates: [Number(record.longitude), Number(record.latitude)] },
+          properties: Object.fromEntries(
+            Object.entries(record).filter(([key]) => !["photos", "latitude", "longitude"].includes(key))
+          )
+        }))
+      };
+    }
+    function csvEscape(value) { const text=String(value??""); return /[",\n]/.test(text)?`"${text.replace(/"/g,'""')}"`:text; }
+    function exportCsv() { const fields=["id","assetCode","project","zone","surveyor","surveyDate","surveyTime","deviceTimestamp","deviceTimezone","category","assetType","assetName","latitude","longitude","gpsAccuracy","gpsAltitude","gpsAltitudeAccuracy","gpsSampleCount","gpsCapturedAt","chainage","side","dimensions","material","condition","issue","remarks","photoCount","createdAt","updatedAt"]; const rows=records.map(r=>fields.map(f=>csvEscape(f==="photoCount"?photoCount(r.photos):r[f])).join(",")); download("roads-drainage-register.csv","text/csv;charset=utf-8",[fields.join(","),...rows].join("\n")); }
+
+    $("category").addEventListener("change",()=>{ $("assetCode").value=""; updateAssetTypes(); saveDraft(); });
+    $("surveyForm").addEventListener("input",saveDraft);
+    $("captureGps").addEventListener("click",startHighAccuracyGps);
+    document.querySelectorAll("[data-photo-slot]").forEach((input) => input.addEventListener("change", async (event) => {
+      const slot = Number(event.target.dataset.photoSlot), file = event.target.files?.[0];
+      if(!file || !file.type.startsWith("image/")) { toast("Select a valid image"); return; }
+      try {
+        $("photoInfo").textContent = `Compressing Photo ${slot + 1}…`;
+        photos[slot] = await compressImage(file);
+        renderPhotos();
+        saveDraft();
+        const saved = Math.max(0, file.size - photos[slot].compressedSize);
+        toast(`Photo ${slot + 1} compressed · saved ${Math.round(saved / 1024)} KB`);
+      } catch {
+        toast(`Photo ${slot + 1} could not be processed`);
+      }
+      event.target.value = "";
+    }));
+    $("surveyForm").addEventListener("submit",async(event)=>{event.preventDefault();if(!photos[0]){toast("Photo 1 is mandatory");return;}if(!$("recordId").value)updateDeviceTimestamp(true);const data=formObject(),lat=Number(data.latitude),lng=Number(data.longitude);if(!data.gpsCapturedAt||!validCoordinate(lat,lng)){toast("Capture the GPS location before submitting");return;}const now=new Date().toISOString(),existing=records.find(r=>r.id===data.recordId);const fallbackId=`survey-${Date.now()}-${Math.random().toString(36).slice(2,10)}`,record={...data,id:data.recordId||(crypto.randomUUID?crypto.randomUUID():fallbackId),assetCode:data.assetCode||nextCode(data.category),latitude:lat,longitude:lng,gpsAccuracy:data.gpsAccuracy?Number(data.gpsAccuracy):null,gpsAltitude:data.gpsAltitude?Number(data.gpsAltitude):null,gpsAltitudeAccuracy:data.gpsAltitudeAccuracy?Number(data.gpsAltitudeAccuracy):null,gpsSampleCount:Number(data.gpsSampleCount)||1,photos:normalizePhotoSlots(photos),createdAt:existing?.createdAt||now,updatedAt:now,crs:"EPSG:4326",syncStatus:"pending",onlineOnly:false};const index=records.findIndex(r=>r.id===record.id);if(index>=0)records[index]=record;else records.push(record);localStorage.removeItem(DRAFT_KEY);const savedOnDevice=persist();const submitButton=$("submitSurvey");submitButton.disabled=true;submitButton.textContent="Submitting…";let onlineSaved=false,message="Saved securely on this device · online sync pending";try{const online=await submitRecordOnline(record);const savedIndex=records.findIndex(r=>r.id===record.id);if(savedIndex>=0)records[savedIndex]={...records[savedIndex],...online,photos:records[savedIndex].photos,onlineOnly:false,syncStatus:"synced"};persist();onlineSaved=true;message="Survey submitted to the NITA GeoAI database";}catch(error){console.warn("Online Field Survey submission failed",error);message=error.message||"Online submission failed. The record remains pending.";}finally{submitButton.disabled=false;submitButton.textContent="Submit online";}if(onlineSaved||savedOnDevice){clearForm();switchScreen("map");fitMap();}else{const recordIndex=records.findIndex(r=>r.id===record.id);if(recordIndex>=0)records.splice(recordIndex,1);message="This phone is out of storage and the server could not be reached. Keep the form open and try again.";}toast(message,6500);});
+    $("resetForm").addEventListener("click",clearForm);
+    $("fitMap").addEventListener("click",fitMap);
+    $("basemapSelect").addEventListener("change",(event)=>switchBasemap(event.target.value));
+    document.querySelectorAll(".filters button").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll(".filters button").forEach(b=>b.classList.remove("active"));button.classList.add("active");filter=button.dataset.filter;renderRecords();renderMap();}));
+    document.querySelectorAll("nav button").forEach(button=>button.addEventListener("click",()=>switchScreen(button.dataset.screen)));
+    $("exportGeoJson").addEventListener("click",()=>download("roads-drainage-assets.geojson","application/geo+json",JSON.stringify(geoJson(),null,2)));
+    $("exportCsv").addEventListener("click",exportCsv);
+    $("exportJson").addEventListener("click",()=>download("roads-drainage-survey-packet.json","application/json",JSON.stringify({schemaVersion:1,generatedAt:new Date().toISOString(),crs:"EPSG:4326",recordCount:records.length,records},null,2)));
+    $("clearAll").addEventListener("click",()=>{if(!records.length){toast("No device records to delete");return;}if(confirm(`Permanently delete ${records.length} records from this device? Export a backup first.`)){records.splice(0);persist();toast("All device records deleted");}});
+    addEventListener("online",()=>{updateNetwork();bootstrapOnlineSync();});addEventListener("offline",updateNetwork);
+    document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")bootstrapOnlineSync();});
+    updateNetwork();updateDeviceTimestamp(true);updateAssetTypes();restoreDraft();initSurveyMap();renderAll();
+    setTimeout(() => { if(surveyMap) surveyMap.invalidateSize(); showStoredSurveyLocation(); }, 50);
+    bootstrapOnlineSync();
+    setInterval(bootstrapOnlineSync, 60000);
+    setInterval(() => { if(!$("recordId").value) updateDeviceTimestamp(); }, 1000);
+    if("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").then((registration)=>registration.update()).catch(()=>{});
+  </script>
+</body>
+</html>
