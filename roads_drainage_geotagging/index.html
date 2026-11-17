@@ -344,8 +344,45 @@
       csrfToken = body.csrf_token;
       return csrfToken;
     }
+    function estimatedDataUrlBytes(value) {
+      if(typeof value !== "string" || !value.includes(",")) return 0;
+      return Math.ceil((value.length - value.indexOf(",") - 1) * .75);
+    }
+    async function reduceStoredPhotoForUpload(photo) {
+      if(!photo?.dataUrl || estimatedDataUrlBytes(photo.dataUrl) <= MAX_PHOTO_UPLOAD_BYTES) return photo;
+      const image = await new Promise((resolve, reject) => {
+        const candidate = new Image();
+        candidate.onload = () => resolve(candidate);
+        candidate.onerror = () => reject(new Error("A pending photograph could not be prepared for upload."));
+        candidate.src = photo.dataUrl;
+      });
+      let canvas = document.createElement("canvas");
+      const initialScale = Math.min(1, 1400 / Math.max(image.width, image.height));
+      canvas.width = Math.max(1, Math.round(image.width * initialScale));
+      canvas.height = Math.max(1, Math.round(image.height * initialScale));
+      canvas.getContext("2d", { alpha:false }).drawImage(image, 0, 0, canvas.width, canvas.height);
+      let quality = .72;
+      let dataUrl = canvas.toDataURL("image/jpeg", quality);
+      for(let pass = 0; estimatedDataUrlBytes(dataUrl) > MAX_PHOTO_UPLOAD_BYTES && pass < 14; pass += 1) {
+        if(quality > .5) quality -= .08;
+        else {
+          const reduced = document.createElement("canvas");
+          reduced.width = Math.max(640, Math.round(canvas.width * .8));
+          reduced.height = Math.max(480, Math.round(canvas.height * .8));
+          reduced.getContext("2d", { alpha:false }).drawImage(canvas, 0, 0, reduced.width, reduced.height);
+          canvas = reduced;
+          quality = .68;
+        }
+        dataUrl = canvas.toDataURL("image/jpeg", quality);
+      }
+      if(estimatedDataUrlBytes(dataUrl) > MAX_PHOTO_UPLOAD_BYTES) throw new Error("A pending photograph is too large. Open the record, replace that photograph, and submit again.");
+      return { ...photo, type:"image/jpeg", compressedSize:estimatedDataUrlBytes(dataUrl), width:canvas.width, height:canvas.height, dataUrl };
+    }
     async function submitRecordOnline(record) {
-      const payload = { ...record, photos:normalizePhotoSlots(record.photos), onlineOnly:undefined, syncStatus:undefined, syncedAt:undefined, ownerName:undefined, ownerUserId:undefined, photoCount:undefined };
+      const uploadPhotos = [];
+      for(const photo of normalizePhotoSlots(record.photos)) uploadPhotos.push(await reduceStoredPhotoForUpload(photo));
+      record.photos = uploadPhotos;
+      const payload = { ...record, photos:uploadPhotos, onlineOnly:undefined, syncStatus:undefined, syncedAt:undefined, ownerName:undefined, ownerUserId:undefined, photoCount:undefined };
       const requestBody = JSON.stringify(payload);
       const requestBytes = new Blob([requestBody]).size;
       if(requestBytes > MAX_SUBMISSION_BYTES) throw new Error("Photographs are still too large for mobile upload. Remove an optional photograph and try again.");
@@ -691,8 +728,7 @@
             canvas.getContext("2d", { alpha: false }).drawImage(image, 0, 0, canvas.width, canvas.height);
             let quality = .82;
             let dataUrl = canvas.toDataURL("image/jpeg", quality);
-            const estimatedBytes = (value) => Math.ceil((value.length - value.indexOf(",") - 1) * .75);
-            for(let pass = 0; estimatedBytes(dataUrl) > MAX_PHOTO_UPLOAD_BYTES && pass < 14; pass += 1) {
+            for(let pass = 0; estimatedDataUrlBytes(dataUrl) > MAX_PHOTO_UPLOAD_BYTES && pass < 14; pass += 1) {
               if(quality > .52) {
                 quality -= .08;
               } else {
@@ -705,8 +741,8 @@
               }
               dataUrl = canvas.toDataURL("image/jpeg", quality);
             }
-            if(estimatedBytes(dataUrl) > MAX_PHOTO_UPLOAD_BYTES) return reject(new Error("The photograph could not be reduced to the mobile upload limit."));
-            resolve({ name:file.name, type:"image/jpeg", originalSize:file.size, compressedSize:estimatedBytes(dataUrl), width:canvas.width, height:canvas.height, capturedAt:new Date().toISOString(), dataUrl });
+            if(estimatedDataUrlBytes(dataUrl) > MAX_PHOTO_UPLOAD_BYTES) return reject(new Error("The photograph could not be reduced to the mobile upload limit."));
+            resolve({ name:file.name, type:"image/jpeg", originalSize:file.size, compressedSize:estimatedDataUrlBytes(dataUrl), width:canvas.width, height:canvas.height, capturedAt:new Date().toISOString(), dataUrl });
           };
           image.src = reader.result;
         };
@@ -767,7 +803,15 @@
     bootstrapOnlineSync();
     setInterval(bootstrapOnlineSync, 60000);
     setInterval(() => { if(!$("recordId").value) updateDeviceTimestamp(); }, 1000);
-    if("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").then((registration)=>registration.update()).catch(()=>{});
+    if("serviceWorker" in navigator) {
+      let refreshingForWorker = false;
+      navigator.serviceWorker.addEventListener("controllerchange",()=>{
+        if(refreshingForWorker) return;
+        refreshingForWorker = true;
+        location.reload();
+      });
+      navigator.serviceWorker.register("./sw.js").then((registration)=>registration.update()).catch(()=>{});
+    }
   </script>
 </body>
 </html>
