@@ -300,6 +300,7 @@
     let gpsSamples = 0;
     let csrfToken = "";
     let onlineSyncRunning = false;
+    let syncState = "checking";
     let mandideepLayerPromise = null;
     const mandideepInstalledMaps = new WeakSet();
     const $ = (id) => document.getElementById(id);
@@ -335,13 +336,17 @@
     function validCoordinate(lat,lng) { return Number.isFinite(lat) && Number.isFinite(lng) && lat>=-90 && lat<=90 && lng>=-180 && lng<=180; }
     function nextCode(category) { const prefix=category==="Road"?"RD":"SWD"; const max=records.filter(r=>r.category===category).reduce((n,r)=>Math.max(n,Number(String(r.assetCode).split("-").pop())||0),0); return `${prefix}-${String(max+1).padStart(4,"0")}`; }
     function updateAssetTypes(selected="") { const category=$("category").value; $("assetType").innerHTML=assetTypes[category].map(type=>`<option ${type===selected?"selected":""}>${escapeHtml(type)}</option>`).join(""); if(!$("assetCode").value) $("assetCode").value=nextCode(category); }
-    function updateNetwork() { $("networkStatus").textContent=navigator.onLine?"Online":"Offline ready"; }
+    function updateNetwork() {
+      $("networkStatus").textContent = !navigator.onLine ? "Offline ready" : syncState === "ready" ? "Synced" : syncState === "unavailable" ? "Sync pending" : "Checking";
+    }
     async function ensureSessionToken(force = false) {
       if(csrfToken && !force) return csrfToken;
       const response = await fetch(SESSION_API, { credentials:"same-origin", cache:"no-store" });
       const body = await response.json().catch(() => ({}));
       if(!response.ok || !body.csrf_token) throw new Error(body.error || "Field Survey session is unavailable.");
       csrfToken = body.csrf_token;
+      syncState = "ready";
+      updateNetwork();
       return csrfToken;
     }
     function estimatedDataUrlBytes(value) {
@@ -460,6 +465,8 @@
         await syncPendingRecords();
         await loadOnlineRecords();
       } catch(error) {
+        syncState = "unavailable";
+        updateNetwork();
         console.warn("Field Survey online synchronization is unavailable", error);
       } finally {
         onlineSyncRunning = false;
@@ -529,7 +536,6 @@
         })
       };
       activeBasemap = basemaps.Satellite.addTo(map);
-      L.control.layers({ "Satellite imagery": basemaps.Satellite, Topographic: basemaps.Topographic, OpenStreetMap: basemaps.OpenStreetMap }, null, { position: "topright" }).addTo(map);
       map.on("baselayerchange", (event) => {
         const selected = Object.entries(basemaps).find(([, layer]) => layer === event.layer);
         if(selected) $("basemapSelect").value = selected[0];
@@ -766,7 +772,7 @@
       };
     }
     function csvEscape(value) { const text=String(value??""); return /[",\n]/.test(text)?`"${text.replace(/"/g,'""')}"`:text; }
-    function exportCsv() { const fields=["id","assetCode","project","zone","surveyor","surveyDate","surveyTime","deviceTimestamp","deviceTimezone","category","assetType","assetName","latitude","longitude","gpsAccuracy","gpsAltitude","gpsAltitudeAccuracy","gpsSampleCount","gpsCapturedAt","chainage","side","dimensions","material","condition","issue","remarks","photoCount","createdAt","updatedAt"]; const rows=records.map(r=>fields.map(f=>csvEscape(f==="photoCount"?photoCount(r.photos):r[f])).join(",")); download("roads-drainage-register.csv","text/csv;charset=utf-8",[fields.join(","),...rows].join("\n")); }
+    function exportCsv() { const fields=["id","assetCode","project","zone","surveyor","surveyDate","surveyTime","deviceTimestamp","deviceTimezone","category","assetType","assetName","latitude","longitude","gpsAccuracy","gpsAltitude","gpsAltitudeAccuracy","gpsSampleCount","gpsCapturedAt","chainage","side","dimensions","material","condition","issue","remarks","photoCount","createdAt","updatedAt"]; const rows=records.map(r=>fields.map(f=>csvEscape(f==="photoCount"?displayedPhotoCount(r):r[f])).join(",")); download("roads-drainage-register.csv","text/csv;charset=utf-8",[fields.join(","),...rows].join("\n")); }
 
     $("category").addEventListener("change",()=>{ $("assetCode").value=""; updateAssetTypes(); saveDraft(); });
     $("surveyForm").addEventListener("input",saveDraft);
@@ -786,7 +792,7 @@
       }
       event.target.value = "";
     }));
-    $("surveyForm").addEventListener("submit",async(event)=>{event.preventDefault();if(!photos[0]){toast("Photo 1 is mandatory");return;}if(!$("recordId").value)updateDeviceTimestamp(true);const data=formObject(),lat=Number(data.latitude),lng=Number(data.longitude);if(!data.gpsCapturedAt||!validCoordinate(lat,lng)){toast("Capture the GPS location before submitting");return;}const now=new Date().toISOString(),existing=records.find(r=>r.id===data.recordId);const fallbackId=`survey-${Date.now()}-${Math.random().toString(36).slice(2,10)}`,record={...data,id:data.recordId||(crypto.randomUUID?crypto.randomUUID():fallbackId),assetCode:data.assetCode||nextCode(data.category),latitude:lat,longitude:lng,gpsAccuracy:data.gpsAccuracy?Number(data.gpsAccuracy):null,gpsAltitude:data.gpsAltitude?Number(data.gpsAltitude):null,gpsAltitudeAccuracy:data.gpsAltitudeAccuracy?Number(data.gpsAltitudeAccuracy):null,gpsSampleCount:Number(data.gpsSampleCount)||1,photos:normalizePhotoSlots(photos),createdAt:existing?.createdAt||now,updatedAt:now,crs:"EPSG:4326",syncStatus:"pending",onlineOnly:false};const index=records.findIndex(r=>r.id===record.id);if(index>=0)records[index]=record;else records.push(record);localStorage.removeItem(DRAFT_KEY);const savedOnDevice=persist();const submitButton=$("submitSurvey");submitButton.disabled=true;submitButton.textContent="Submitting…";let onlineSaved=false,message="Saved securely on this device · online sync pending";try{const online=await submitRecordOnline(record);const savedIndex=records.findIndex(r=>r.id===record.id);if(savedIndex>=0)records[savedIndex]={...records[savedIndex],...online,photos:records[savedIndex].photos,onlineOnly:false,syncStatus:"synced"};persist();onlineSaved=true;message="Survey submitted to the NITA GeoAI database";}catch(error){console.warn("Online Field Survey submission failed",error);message=error.message||"Online submission failed. The record remains pending.";}finally{submitButton.disabled=false;submitButton.textContent="Submit online";}if(onlineSaved||savedOnDevice){clearForm();switchScreen("map");fitMap();}else{const recordIndex=records.findIndex(r=>r.id===record.id);if(recordIndex>=0)records.splice(recordIndex,1);message="This phone is out of storage and the server could not be reached. Keep the form open and try again.";}toast(message,6500);});
+    $("surveyForm").addEventListener("submit",async(event)=>{event.preventDefault();if(!photos[0]){toast("Photo 1 is mandatory");return;}if(!$("recordId").value)updateDeviceTimestamp(true);const data=formObject(),lat=Number(data.latitude),lng=Number(data.longitude);if(!data.gpsCapturedAt||!validCoordinate(lat,lng)){toast("Capture the GPS location before submitting");return;}const now=new Date().toISOString(),existing=records.find(r=>r.id===data.recordId);const fallbackId=`survey-${Date.now()}-${Math.random().toString(36).slice(2,10)}`,record={...data,id:data.recordId||(crypto.randomUUID?crypto.randomUUID():fallbackId),assetCode:data.assetCode||nextCode(data.category),latitude:lat,longitude:lng,gpsAccuracy:data.gpsAccuracy?Number(data.gpsAccuracy):null,gpsAltitude:data.gpsAltitude?Number(data.gpsAltitude):null,gpsAltitudeAccuracy:data.gpsAltitudeAccuracy?Number(data.gpsAltitudeAccuracy):null,gpsSampleCount:Number(data.gpsSampleCount)||1,photos:normalizePhotoSlots(photos),createdAt:existing?.createdAt||now,updatedAt:now,crs:"EPSG:4326",syncStatus:"pending",onlineOnly:false};const index=records.findIndex(r=>r.id===record.id);if(index>=0)records[index]=record;else records.push(record);localStorage.removeItem(DRAFT_KEY);const savedOnDevice=persist();const submitButton=$("submitSurvey");submitButton.disabled=true;submitButton.textContent="Submitting…";let onlineSaved=false,message="Saved securely on this device · online sync pending";try{const online=await submitRecordOnline(record);const savedIndex=records.findIndex(r=>r.id===record.id);if(savedIndex>=0)records[savedIndex]={...records[savedIndex],...online,photos:records[savedIndex].photos,onlineOnly:false,syncStatus:"synced"};persist();syncState="ready";updateNetwork();onlineSaved=true;message="Survey submitted to the NITA GeoAI database";}catch(error){syncState="unavailable";updateNetwork();console.warn("Online Field Survey submission failed",error);message=error.message||"Online submission failed. The record remains pending.";}finally{submitButton.disabled=false;submitButton.textContent="Submit online";}if(onlineSaved||savedOnDevice){clearForm();switchScreen("map");fitMap();}else{const recordIndex=records.findIndex(r=>r.id===record.id);if(recordIndex>=0)records.splice(recordIndex,1);message="This phone is out of storage and the server could not be reached. Keep the form open and try again.";}toast(message,6500);});
     $("resetForm").addEventListener("click",clearForm);
     $("fitMap").addEventListener("click",fitMap);
     $("basemapSelect").addEventListener("change",(event)=>switchBasemap(event.target.value));

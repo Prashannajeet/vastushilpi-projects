@@ -41,13 +41,15 @@ class AppContractTests(unittest.TestCase):
             'setInterval(bootstrapOnlineSync, 60000);',
             'syncStatus:"pending"',
             "async function reduceStoredPhotoForUpload(photo)",
+            'f==="photoCount"?displayedPhotoCount(r):r[f]',
+            'syncState === "unavailable" ? "Sync pending"',
             'navigator.serviceWorker.addEventListener("controllerchange"',
         ):
             self.assertIn(marker, html)
 
     def test_mobile_sync_worker_is_versioned(self) -> None:
         worker = (ROOT / "sw.js").read_text(encoding="utf-8")
-        self.assertIn("nita-geoai-roads-drainage-online-v5", worker)
+        self.assertIn("nita-geoai-roads-drainage-online-v6", worker)
 
     def test_reference_layers_required_by_worker_are_published(self) -> None:
         for name in (

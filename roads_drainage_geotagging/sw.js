@@ -1,4 +1,4 @@
-const CACHE = "nita-geoai-roads-drainage-online-v5";
+const CACHE = "nita-geoai-roads-drainage-online-v6";
 const SHELL = [
   "./",
   "./index.html",

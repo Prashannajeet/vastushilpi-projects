@@ -1,0 +1,49 @@
+{
+  "id": "dashboard:0d76cb37-b422-460e-a035-520631c7170c",
+  "title": "Roads & Drainage Administration",
+  "generatedAt": "2026-11-17T00:00:00+05:30",
+  "status": "reviewed",
+  "surface": "dashboard",
+  "filters": [],
+  "queries": {
+    "field_records": {
+      "rows": [],
+      "source": {
+        "label": "NITA GeoAI mobile field records",
+        "caveats": [
+          "The dashboard reads the authenticated NITA GeoAI field-survey API and falls back to same-origin browser storage only when the API is unavailable. Empty sources are shown as an explicit no-records state.",
+          "GPS accuracy is device-reported and depends on hardware and field conditions."
+        ],
+        "tables": [
+          "api.field_survey.roads_drainage.records",
+          "browser_local_storage.roadsDrainageSurveyRecordsV1"
+        ],
+        "metricDefinitions": [
+          {
+            "label": "Field record",
+            "definition": "One saved road or stormwater asset survey record with a mandatory GPS fix and Photo 1.",
+            "componentIds": [
+              "overview",
+              "condition-analysis",
+              "quality-queue",
+              "record-register"
+            ],
+            "sourceLineage": [
+              {
+                "tables": [
+                    "api.field_survey.roads_drainage.records",
+                  "browser_local_storage.roadsDrainageSurveyRecordsV1"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "buildStatus": "complete",
+  "exportPreferences": {
+    "selected": null,
+    "destinations": []
+  }
+}
